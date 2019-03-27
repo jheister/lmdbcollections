@@ -5,9 +5,6 @@ import jheister.lmdbcollections.TestBase;
 import jheister.lmdbcollections.Transaction;
 import jheister.lmdbcollections.collections.LmdbTable.Entry;
 import org.junit.Test;
-import org.lmdbjava.Txn;
-
-import java.nio.ByteBuffer;
 
 import static jheister.lmdbcollections.Codec.STRING_CODEC;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -56,31 +53,30 @@ public class LmdbTableTest extends TestBase {
         }
     }
 
-    //todo: actually test the ordering
     @Test public void
     lists_all_entries_in_a_row_in_order() {
         try (LmdbStorageEnvironment env = createEnv()) {
             LmdbTable<String, String, String> table = env.createTable("test", STRING_CODEC, STRING_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
-                table.put(txn, "row1", "col1", "A");
-                table.put(txn, "row1", "col2", "B");
-                table.put(txn, "row2", "col1", "C");
-                table.put(txn, "row2", "col2", "D");
-                table.put(txn, "row3", "col1", "A");
-                table.put(txn, "row3", "col2", "F");
+                table.put(txn, "R1", "B", "2");
+                table.put(txn, "R1", "A", "4");
+                table.put(txn, "R2", "C", "7");
+                table.put(txn, "R2", "D", "5");
+                table.put(txn, "R3", "E", "8");
+                table.put(txn, "R3", "F", "9");
 
-                assertThat(collect(table.rowEntries(txn, "row1")), contains(
-                        new Entry<>("row1", "col1", "A"),
-                        new Entry<>("row1", "col2", "B")
+                assertThat(collect(table.rowEntries(txn, "R1")), contains(
+                        new Entry<>("R1", "A", "4"),
+                        new Entry<>("R1", "B", "2")
                 ));
-                assertThat(collect(table.rowEntries(txn, "row2")), contains(
-                        new Entry<>("row2", "col1", "C"),
-                        new Entry<>("row2", "col2", "D")
+                assertThat(collect(table.rowEntries(txn, "R2")), contains(
+                        new Entry<>("R2", "C", "7"),
+                        new Entry<>("R2", "D", "5")
                 ));
-                assertThat(collect(table.rowEntries(txn, "row3")), contains(
-                        new Entry<>("row3", "col1", "A"),
-                        new Entry<>("row3", "col2", "F")
+                assertThat(collect(table.rowEntries(txn, "R3")), contains(
+                        new Entry<>("R3", "E", "8"),
+                        new Entry<>("R3", "F", "9")
                 ));
             }
         }

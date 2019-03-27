@@ -41,13 +41,13 @@ public class LmdbStorageEnvironment implements AutoCloseable {
     }
 
     public static LmdbStorageEnvironment create(File path, int maxCollections, long maxTotalSize) {
-        //todo: what are the min/max values? - should be pagesizes etc
         return new LmdbStorageEnvironment(Env.create()
                 .setMapSize(maxTotalSize)
                 .setMaxDbs(maxCollections)
                 .open(path, EnvFlags.MDB_WRITEMAP, EnvFlags.MDB_NOSYNC, EnvFlags.MDB_NOTLS));
     }
 
+    //todo: work out how to cache transaction objects / their buffers - count should match max transactions
     public Transaction txnWrite() {
         return new Transaction(env.txnWrite());
     }

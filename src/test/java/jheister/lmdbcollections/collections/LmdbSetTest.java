@@ -3,10 +3,15 @@ package jheister.lmdbcollections.collections;
 import jheister.lmdbcollections.LmdbStorageEnvironment;
 import jheister.lmdbcollections.TestBase;
 import jheister.lmdbcollections.Transaction;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.lmdbjava.Dbi;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static jheister.lmdbcollections.Codec.STRING_CODEC;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -14,6 +19,9 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 
 public class LmdbSetTest extends TestBase {
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+
     @Test public void
     can_add_elements() {
         try (LmdbStorageEnvironment env = createEnv()) {
@@ -27,7 +35,6 @@ public class LmdbSetTest extends TestBase {
                 set.add(txn, "a");
                 set.add(txn, "Set!");
 
-                //todo: look at how UTF-8 sort order is defined - uppercase before lowercase?
                 List<String> values = new ArrayList<>();
                 set.forEach(txn, values::add);
                 assertThat(values, contains(
@@ -84,5 +91,22 @@ public class LmdbSetTest extends TestBase {
         }
     }
 
-    //todo: test for max size of values in set
+    @Test public void
+    when_key_is_larger_than_511B_fails() {
+        try (LmdbStorageEnvironment env = createEnv()) {
+            LmdbSet<String> set = env.createSet("test", STRING_CODEC);
+
+            String maxValue = IntStream.range(0, 511).mapToObj(k -> "A").collect(Collectors.joining());
+
+            try (Transaction txn = env.txnWrite()) {
+                set.add(txn, maxValue);
+                List<String> values = new ArrayList<>();
+                set.forEach(txn, values::add);
+                assertThat(values, contains(maxValue));
+
+                thrown.expect(Dbi.BadValueSizeException.class);
+                set.add(txn, maxValue + "A");
+            }
+        }
+    }
 }

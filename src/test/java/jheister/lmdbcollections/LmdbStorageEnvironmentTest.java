@@ -51,7 +51,6 @@ public class LmdbStorageEnvironmentTest extends TestBase {
 
             writeTxn.commit();
 
-            //todo: work out where this is doccumented
             assertThat(set.contains(readTxn, "A"), is(false));
             readTxn.close();
 
