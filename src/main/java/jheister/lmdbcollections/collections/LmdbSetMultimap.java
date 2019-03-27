@@ -1,6 +1,6 @@
 package jheister.lmdbcollections.collections;
 
-import jheister.lmdbcollections.Codec.Empty;
+import jheister.lmdbcollections.codec.Codec.Empty;
 import jheister.lmdbcollections.Transaction;
 
 import java.util.stream.Stream;

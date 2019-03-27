@@ -5,7 +5,7 @@ import jheister.lmdbcollections.TestBase;
 import jheister.lmdbcollections.Transaction;
 import org.junit.Test;
 
-import static jheister.lmdbcollections.Codec.STRING_CODEC;
+import static jheister.lmdbcollections.codec.Codec.STRING_CODEC;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;

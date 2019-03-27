@@ -1,5 +1,6 @@
 package jheister.lmdbcollections;
 
+import jheister.lmdbcollections.codec.Codec;
 import jheister.lmdbcollections.collections.LmdbMap;
 import jheister.lmdbcollections.collections.LmdbSet;
 import jheister.lmdbcollections.collections.LmdbSetMultimap;

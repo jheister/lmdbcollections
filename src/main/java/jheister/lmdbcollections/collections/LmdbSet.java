@@ -1,6 +1,6 @@
 package jheister.lmdbcollections.collections;
 
-import jheister.lmdbcollections.Codec;
+import jheister.lmdbcollections.codec.Codec;
 import jheister.lmdbcollections.Transaction;
 import org.lmdbjava.Dbi;
 

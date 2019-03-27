@@ -1,4 +1,6 @@
-package jheister.lmdbcollections;
+package jheister.lmdbcollections.codec;
+
+import jheister.lmdbcollections.codec.Codec;
 
 import java.nio.ByteBuffer;
 

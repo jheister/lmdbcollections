@@ -7,7 +7,7 @@ import org.lmdbjava.Env;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
-import static jheister.lmdbcollections.Codec.STRING_CODEC;
+import static jheister.lmdbcollections.codec.Codec.STRING_CODEC;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
