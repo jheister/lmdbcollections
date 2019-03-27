@@ -5,7 +5,6 @@ import jheister.lmdbcollections.collections.LmdbSet;
 import jheister.lmdbcollections.collections.LmdbSetMultimap;
 import jheister.lmdbcollections.collections.LmdbTable;
 import org.lmdbjava.Env;
-import org.lmdbjava.Txn;
 
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -48,11 +47,11 @@ public class LmdbStorageEnvironment implements AutoCloseable {
                 .open(path));
     }
 
-    public Txn<ByteBuffer> txnWrite() {
-        return env.txnWrite();
+    public Transaction txnWrite() {
+        return new Transaction(env.txnWrite());
     }
 
-    public Txn<ByteBuffer> txnRead() {
-        return env.txnRead();
+    public Transaction txnRead() {
+        return new Transaction(env.txnRead());
     }
 }

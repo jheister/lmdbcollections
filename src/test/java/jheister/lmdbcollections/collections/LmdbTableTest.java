@@ -2,6 +2,7 @@ package jheister.lmdbcollections.collections;
 
 import jheister.lmdbcollections.LmdbStorageEnvironment;
 import jheister.lmdbcollections.TestBase;
+import jheister.lmdbcollections.Transaction;
 import jheister.lmdbcollections.collections.LmdbTable.Entry;
 import org.junit.Test;
 import org.lmdbjava.Txn;
@@ -20,7 +21,7 @@ public class LmdbTableTest extends TestBase {
         try (LmdbStorageEnvironment env = createEnv()) {
             LmdbTable<String, String, String> table = env.createTable("test", STRING_CODEC, STRING_CODEC, STRING_CODEC);
 
-            try (Txn<ByteBuffer> txn = env.txnWrite()) {
+            try (Transaction txn = env.txnWrite()) {
                 table.put(txn, "row1", "col1", "Hello");
                 table.put(txn, "row1", "col2", "World");
                 table.put(txn, "row2", "col1", "Hi");
@@ -39,7 +40,7 @@ public class LmdbTableTest extends TestBase {
         try (LmdbStorageEnvironment env = createEnv()) {
             LmdbTable<String, String, String> table = env.createTable("test", STRING_CODEC, STRING_CODEC, STRING_CODEC);
 
-            try (Txn<ByteBuffer> txn = env.txnWrite()) {
+            try (Transaction txn = env.txnWrite()) {
                 table.put(txn, "row1", "col1", "Hello");
                 table.put(txn, "row1", "col2", "World");
                 table.put(txn, "row2", "col1", "Hi");
@@ -61,7 +62,7 @@ public class LmdbTableTest extends TestBase {
         try (LmdbStorageEnvironment env = createEnv()) {
             LmdbTable<String, String, String> table = env.createTable("test", STRING_CODEC, STRING_CODEC, STRING_CODEC);
 
-            try (Txn<ByteBuffer> txn = env.txnWrite()) {
+            try (Transaction txn = env.txnWrite()) {
                 table.put(txn, "row1", "col1", "A");
                 table.put(txn, "row1", "col2", "B");
                 table.put(txn, "row2", "col1", "C");
@@ -90,7 +91,7 @@ public class LmdbTableTest extends TestBase {
         try (LmdbStorageEnvironment env = createEnv()) {
             LmdbTable<String, String, String> table = env.createTable("test", STRING_CODEC, STRING_CODEC, STRING_CODEC);
 
-            try (Txn<ByteBuffer> txn = env.txnWrite()) {
+            try (Transaction txn = env.txnWrite()) {
                 table.put(txn, "A", "Aa", "1");
                 table.put(txn, "A", "Ab", "2");
                 table.put(txn, "A", "Ac", "3");
@@ -117,7 +118,7 @@ public class LmdbTableTest extends TestBase {
         try (LmdbStorageEnvironment env = createEnv()) {
             LmdbTable<String, String, String> table = env.createTable("test", STRING_CODEC, STRING_CODEC, STRING_CODEC);
 
-            try (Txn<ByteBuffer> txn = env.txnWrite()) {
+            try (Transaction txn = env.txnWrite()) {
                 table.put(txn, "row1", "col1", "Hello");
                 table.put(txn, "row1", "col2", "World");
                 table.put(txn, "row1", "col2", "Alternative");

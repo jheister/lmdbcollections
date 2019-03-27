@@ -5,9 +5,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.lmdbjava.Env;
-import org.lmdbjava.Txn;
 
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
@@ -30,7 +28,7 @@ public class LmdbStorageEnvironmentTest extends TestBase {
             int uuidStringLength = UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8).length;
             int requiredValues = (1024 * 1024) / uuidStringLength;
 
-            try (Txn<ByteBuffer> txn = env.txnWrite()) {
+            try (Transaction txn = env.txnWrite()) {
                 for (int i = 0; i < requiredValues; i++) {
                     set.add(txn, UUID.randomUUID().toString());
                 }
@@ -43,8 +41,8 @@ public class LmdbStorageEnvironmentTest extends TestBase {
         try (LmdbStorageEnvironment env = createEnv(1024 * 1024)) {
             LmdbSet<String> set = env.createSet("test", STRING_CODEC);
 
-            Txn<ByteBuffer> writeTxn = env.txnWrite();
-            Txn<ByteBuffer> readTxn = env.txnRead();
+            Transaction writeTxn = env.txnWrite();
+            Transaction readTxn = env.txnRead();
 
             set.add(writeTxn, "A");
 
@@ -67,12 +65,12 @@ public class LmdbStorageEnvironmentTest extends TestBase {
             LmdbSet<String> set1 = env.createSet("test1", STRING_CODEC);
             LmdbSet<String> set2 = env.createSet("test2", STRING_CODEC);
 
-            try (Txn<ByteBuffer> txn = env.txnWrite()) {
+            try (Transaction txn = env.txnWrite()) {
                 set1.add(txn, "A");
                 set2.add(txn, "B");
             }
 
-            try (Txn<ByteBuffer> txn = env.txnRead()) {
+            try (Transaction txn = env.txnRead()) {
                 assertThat(set1.contains(txn, "A"), is(false));
                 assertThat(set2.contains(txn, "B"), is(false));
             }

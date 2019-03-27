@@ -2,10 +2,8 @@ package jheister.lmdbcollections.collections;
 
 import jheister.lmdbcollections.LmdbStorageEnvironment;
 import jheister.lmdbcollections.TestBase;
+import jheister.lmdbcollections.Transaction;
 import org.junit.Test;
-import org.lmdbjava.Txn;
-
-import java.nio.ByteBuffer;
 
 import static jheister.lmdbcollections.Codec.STRING_CODEC;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -18,7 +16,7 @@ public class LmdbSetMultimapTest extends TestBase {
         try (LmdbStorageEnvironment env = createEnv()) {
             LmdbSetMultimap<String, String> map = env.createSetMultimap("test", STRING_CODEC, STRING_CODEC);
 
-            try (Txn<ByteBuffer> txn = env.txnWrite()) {
+            try (Transaction txn = env.txnWrite()) {
                 map.put(txn, "k1", "Hello");
                 map.put(txn, "k1", "World");
                 map.put(txn, "k2", "Hi");
@@ -35,7 +33,7 @@ public class LmdbSetMultimapTest extends TestBase {
         try (LmdbStorageEnvironment env = createEnv()) {
             LmdbSetMultimap<String, String> map = env.createSetMultimap("test", STRING_CODEC, STRING_CODEC);
 
-            try (Txn<ByteBuffer> txn = env.txnWrite()) {
+            try (Transaction txn = env.txnWrite()) {
                 map.put(txn, "k1", "Hello");
                 map.put(txn, "k1", "World");
                 map.put(txn, "k2", "Hi");
@@ -55,7 +53,7 @@ public class LmdbSetMultimapTest extends TestBase {
         try (LmdbStorageEnvironment env = createEnv()) {
             LmdbSetMultimap<String, String> map = env.createSetMultimap("test", STRING_CODEC, STRING_CODEC);
 
-            try (Txn<ByteBuffer> txn = env.txnWrite()) {
+            try (Transaction txn = env.txnWrite()) {
                 map.put(txn, "k1", "Hello");
                 map.put(txn, "k1", "Hello");
                 map.put(txn, "k1", "Hello");
@@ -70,7 +68,7 @@ public class LmdbSetMultimapTest extends TestBase {
         try (LmdbStorageEnvironment env = createEnv()) {
             LmdbSetMultimap<String, String> map = env.createSetMultimap("test", STRING_CODEC, STRING_CODEC);
 
-            try (Txn<ByteBuffer> txn = env.txnWrite()) {
+            try (Transaction txn = env.txnWrite()) {
                 map.put(txn, "k1", "Hello");
 
                 assertThat(collect(map.get(txn, "another")), emptyIterable());

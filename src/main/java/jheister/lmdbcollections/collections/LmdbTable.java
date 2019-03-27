@@ -1,10 +1,10 @@
 package jheister.lmdbcollections.collections;
 
 import jheister.lmdbcollections.Codec;
+import jheister.lmdbcollections.Transaction;
 import org.lmdbjava.CursorIterator;
 import org.lmdbjava.Dbi;
 import org.lmdbjava.KeyRange;
-import org.lmdbjava.Txn;
 
 import java.nio.ByteBuffer;
 import java.util.Objects;
@@ -31,37 +31,37 @@ public class LmdbTable<R, C, V> {
         this.codec = codec;
     }
 
-    public void put(Txn<ByteBuffer> txn, R rowKey, C colKey, V value) {
+    public void put(Transaction txn, R rowKey, C colKey, V value) {
         fillKeyBuffer(rowKey, colKey);
         valueBuffer.clear();
         codec.serialize(value, valueBuffer);
         valueBuffer.flip();
-        db.put(txn, keyBuffer, valueBuffer);
+        db.put(txn.lmdbTxn, keyBuffer, valueBuffer);
     }
 
-    public V get(Txn<ByteBuffer> txn, R rowKey, C colKey) {
+    public V get(Transaction txn, R rowKey, C colKey) {
         fillKeyBuffer(rowKey, colKey);
 
-        ByteBuffer valueBuffer = db.get(txn, keyBuffer);
+        ByteBuffer valueBuffer = db.get(txn.lmdbTxn, keyBuffer);
         if (valueBuffer == null) {
             return null;
         }
         return codec.deserialize(valueBuffer);
     }
 
-    public void remove(Txn<ByteBuffer> txn, R rowKey, C colKey) {
+    public void remove(Transaction txn, R rowKey, C colKey) {
         fillKeyBuffer(rowKey, colKey);
 
-        db.delete(txn, keyBuffer);
+        db.delete(txn.lmdbTxn, keyBuffer);
     }
 
     //todo: replace with forEach to avoid open streams?
-    public Stream<Entry<R, C, V>> rowEntries(Txn<ByteBuffer> txn, R rowKey) {
+    public Stream<Entry<R, C, V>> rowEntries(Transaction txn, R rowKey) {
         keyBuffer.clear();
         fillRowKey(rowKey);
         keyBuffer.flip();
 
-        CursorIterator<ByteBuffer> iterator = db.iterate(txn, KeyRange.atLeast(keyBuffer));
+        CursorIterator<ByteBuffer> iterator = db.iterate(txn.lmdbTxn, KeyRange.atLeast(keyBuffer));
 
         return stream(spliteratorUnknownSize(iterator, Spliterator.ORDERED), false)
                 .map(e -> {

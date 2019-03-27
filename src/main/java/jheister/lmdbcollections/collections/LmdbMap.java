@@ -1,9 +1,9 @@
 package jheister.lmdbcollections.collections;
 
 import jheister.lmdbcollections.Codec;
+import jheister.lmdbcollections.Transaction;
 import org.lmdbjava.CursorIterator;
 import org.lmdbjava.Dbi;
-import org.lmdbjava.Txn;
 
 import java.nio.ByteBuffer;
 import java.util.Objects;
@@ -28,31 +28,31 @@ public class LmdbMap<K, V> {
         this.valueCodec = valueCodec;
     }
 
-    public void put(Txn<ByteBuffer> txn, K key, V value) {
+    public void put(Transaction txn, K key, V value) {
         fillKeyBuffer(key);
         valueBuffer.clear();
         valueCodec.serialize(value, valueBuffer);
         valueBuffer.flip();
-        db.put(txn, keyBuffer, valueBuffer);
+        db.put(txn.lmdbTxn, keyBuffer, valueBuffer);
     }
 
-    public V get(Txn<ByteBuffer> txn, K key) {
+    public V get(Transaction txn, K key) {
         fillKeyBuffer(key);
-        ByteBuffer valueBuffer = db.get(txn, keyBuffer);
+        ByteBuffer valueBuffer = db.get(txn.lmdbTxn, keyBuffer);
         if (valueBuffer == null) {
             return null;
         }
         return valueCodec.deserialize(valueBuffer);
     }
 
-    public void remove(Txn<ByteBuffer> txn, K key) {
+    public void remove(Transaction txn, K key) {
         fillKeyBuffer(key);
-        db.delete(txn, keyBuffer);
+        db.delete(txn.lmdbTxn, keyBuffer);
     }
 
     //todo: replace with forEach to avoid open streams?
-    public Stream<Entry<K, V>> entries(Txn<ByteBuffer> txn) {
-        CursorIterator<ByteBuffer> iterator = db.iterate(txn);
+    public Stream<Entry<K, V>> entries(Transaction txn) {
+        CursorIterator<ByteBuffer> iterator = db.iterate(txn.lmdbTxn);
         return stream(spliteratorUnknownSize(iterator, Spliterator.ORDERED), false).map(e -> {
             return new Entry<K, V>(keyCodec.deserialize(e.key()), valueCodec.deserialize(e.val()));
         }).onClose(iterator::close);

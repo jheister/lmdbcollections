@@ -2,10 +2,9 @@ package jheister.lmdbcollections.collections;
 
 import jheister.lmdbcollections.LmdbStorageEnvironment;
 import jheister.lmdbcollections.TestBase;
+import jheister.lmdbcollections.Transaction;
 import org.junit.Test;
-import org.lmdbjava.Txn;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +19,7 @@ public class LmdbSetTest extends TestBase {
         try (LmdbStorageEnvironment env = createEnv()) {
             LmdbSet<String> set = env.createSet("test", STRING_CODEC);
 
-            try (Txn<ByteBuffer> txn = env.txnWrite()) {
+            try (Transaction txn = env.txnWrite()) {
                 set.add(txn, "Hello");
                 set.add(txn, "World");
                 set.add(txn, "I");
@@ -48,7 +47,7 @@ public class LmdbSetTest extends TestBase {
         try (LmdbStorageEnvironment env = createEnv()) {
             LmdbSet<String> set = env.createSet("test", STRING_CODEC);
 
-            try (Txn<ByteBuffer> txn = env.txnWrite()) {
+            try (Transaction txn = env.txnWrite()) {
                 set.add(txn, "Hello");
                 set.add(txn, "World");
                 set.add(txn, "I");
@@ -74,7 +73,7 @@ public class LmdbSetTest extends TestBase {
         try (LmdbStorageEnvironment env = createEnv()) {
             LmdbSet<String> set = env.createSet("test", STRING_CODEC);
 
-            try (Txn<ByteBuffer> txn = env.txnWrite()) {
+            try (Transaction txn = env.txnWrite()) {
                 set.add(txn, "Hello");
                 set.add(txn, "World");
                 set.add(txn, "I");

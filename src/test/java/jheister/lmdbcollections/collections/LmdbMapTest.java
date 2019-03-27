@@ -2,11 +2,9 @@ package jheister.lmdbcollections.collections;
 
 import jheister.lmdbcollections.LmdbStorageEnvironment;
 import jheister.lmdbcollections.TestBase;
+import jheister.lmdbcollections.Transaction;
 import jheister.lmdbcollections.collections.LmdbMap.Entry;
 import org.junit.Test;
-import org.lmdbjava.Txn;
-
-import java.nio.ByteBuffer;
 
 import static jheister.lmdbcollections.Codec.STRING_CODEC;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -21,7 +19,7 @@ public class LmdbMapTest extends TestBase {
         try (LmdbStorageEnvironment env = createEnv()) {
             LmdbMap<String, String> map = env.createMap("test", STRING_CODEC, STRING_CODEC);
 
-            try (Txn<ByteBuffer> txn = env.txnWrite()) {
+            try (Transaction txn = env.txnWrite()) {
                 map.put(txn, "k1", "Hello");
                 map.put(txn, "k2", "Hi");
 
@@ -36,7 +34,7 @@ public class LmdbMapTest extends TestBase {
         try (LmdbStorageEnvironment env = createEnv()) {
             LmdbMap<String, String> map = env.createMap("test", STRING_CODEC, STRING_CODEC);
 
-            try (Txn<ByteBuffer> txn = env.txnWrite()) {
+            try (Transaction txn = env.txnWrite()) {
                 map.put(txn, "key1", "Hello");
                 map.put(txn, "key2", "World");
 
@@ -53,7 +51,7 @@ public class LmdbMapTest extends TestBase {
         try (LmdbStorageEnvironment env = createEnv()) {
             LmdbMap<String, String> map = env.createMap("test", STRING_CODEC, STRING_CODEC);
 
-            try (Txn<ByteBuffer> txn = env.txnWrite()) {
+            try (Transaction txn = env.txnWrite()) {
                 map.put(txn, "A", "Hello");
                 map.put(txn, "C", "Some");
                 map.put(txn, "B", "Hi");
@@ -72,7 +70,7 @@ public class LmdbMapTest extends TestBase {
         try (LmdbStorageEnvironment env = createEnv()) {
             LmdbMap<String, String> map = env.createMap("test", STRING_CODEC, STRING_CODEC);
 
-            try (Txn<ByteBuffer> txn = env.txnWrite()) {
+            try (Transaction txn = env.txnWrite()) {
                 map.put(txn, "key1", "Hello");
                 map.put(txn, "key1", "Alternative");
 
