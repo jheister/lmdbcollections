@@ -7,6 +7,7 @@ import org.lmdbjava.Dbi;
 import org.lmdbjava.KeyRange;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Spliterator;
 import java.util.stream.Stream;
@@ -56,25 +57,36 @@ public class LmdbTable<R, C, V> {
         fillRowKey(txn.keyBuffer, rowKey);
         txn.keyBuffer.flip();
 
+        int expectedKeyLength = txn.keyBuffer.getInt();
+        byte[] expectedKeyBytes = new byte[expectedKeyLength];
+        txn.keyBuffer.get(expectedKeyBytes);
+        txn.keyBuffer.rewind();
+
         CursorIterator<ByteBuffer> iterator = db.iterate(txn.lmdbTxn, KeyRange.atLeast(txn.keyBuffer));
 
+
+        byte[] actualKeyBytes = new byte[expectedKeyLength];
+
         return stream(spliteratorUnknownSize(iterator, Spliterator.ORDERED), false)
-                .map(e -> {
+                .takeWhile(e -> {
                     ByteBuffer key = e.key();
-                    int rowKeyLength = key.getInt();
+                    int keyLength = key.getInt();
+                    if (expectedKeyLength != keyLength) {
+                        return false;
+                    }
 
-                    //todo: optimize, no need to redo deserialize of row key every entry
-                    R actualRowKey = rowKeyCodec.deserialize(key.slice().limit(rowKeyLength));
-
-                    key.position(key.position() + rowKeyLength);
-                    C colKey = colKeyCodec.deserialize(key);
+                    key.get(actualKeyBytes);
+                    return Arrays.equals(actualKeyBytes, expectedKeyBytes);
+                })
+                .map(e -> {
+                    C colKey = colKeyCodec.deserialize(e.key());
 
                     return new Entry<>(
-                            actualRowKey,
+                            rowKey,
                             colKey,
                             codec.deserialize(e.val())
                     );
-                }).takeWhile(e -> rowKey.equals(e.rowKey)).onClose(iterator::close);
+                }).onClose(iterator::close);
     }
 
     private void fillKeyBuffer(ByteBuffer keyBuffer, R rowKey, C colKey) {
