@@ -4,6 +4,9 @@ import java.nio.ByteBuffer;
 
 public interface Codec<T> {
     Codec<String> STRING_CODEC = new StringCodec();
+
+    Codec<Integer> INTEGER_CODEC = new IntegerCodec();
+
     Codec<Empty> EMPTY_CODEC = new Codec<>() {
         @Override
         public Empty deserialize(ByteBuffer buffer) {
@@ -22,4 +25,5 @@ public interface Codec<T> {
     T deserialize(ByteBuffer buffer);
 
     void serialize(T value, ByteBuffer target);
+
 }

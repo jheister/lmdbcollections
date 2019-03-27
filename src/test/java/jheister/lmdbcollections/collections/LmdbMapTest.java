@@ -5,6 +5,7 @@ import jheister.lmdbcollections.TestBase;
 import jheister.lmdbcollections.Transaction;
 import org.junit.Test;
 
+import static jheister.lmdbcollections.codec.Codec.INTEGER_CODEC;
 import static jheister.lmdbcollections.codec.Codec.STRING_CODEC;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -75,6 +76,23 @@ public class LmdbMapTest extends TestBase {
 
                 assertThat(collect(map.entries(txn)), contains(
                         new Entry<>("key1", "Alternative")
+                ));
+            }
+        }
+    }
+
+    @Test public void
+    can_have_int_string_map() {
+        try (LmdbStorageEnvironment env = createEnv()) {
+            LmdbMap<Integer, String> map = env.createMap("test", INTEGER_CODEC, STRING_CODEC);
+
+            try (Transaction txn = env.txnWrite()) {
+                map.put(txn, 6, "Hello");
+                map.put(txn, 3, "Alternative");
+
+                assertThat(collect(map.entries(txn)), contains(
+                        new Entry<>(3, "Alternative"),
+                        new Entry<>(6, "Hello")
                 ));
             }
         }
