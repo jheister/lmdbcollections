@@ -8,7 +8,6 @@ import org.lmdbjava.KeyRange;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.Spliterator;
 import java.util.stream.Stream;
 
@@ -52,7 +51,7 @@ public class LmdbTable<R, C, V> {
         db.delete(txn.lmdbTxn, txn.keyBuffer);
     }
 
-    public Stream<Entry<R, C, V>> rowEntries(Transaction txn, R rowKey) {
+    public Stream<Entry<C, V>> rowEntries(Transaction txn, R rowKey) {
         txn.keyBuffer.clear();
         fillRowKey(txn.keyBuffer, rowKey);
         txn.keyBuffer.flip();
@@ -82,7 +81,6 @@ public class LmdbTable<R, C, V> {
                     C colKey = colKeyCodec.deserialize(e.key());
 
                     return new Entry<>(
-                            rowKey,
                             colKey,
                             codec.deserialize(e.val())
                     );
@@ -102,42 +100,5 @@ public class LmdbTable<R, C, V> {
         rowKeyCodec.serialize(rowKey, keyBuffer);
         int rowKeySize = keyBuffer.position() - 4;
         keyBuffer.putInt(0, rowKeySize);
-    }
-
-    public static class Entry<R, C, V> {
-        public final R rowKey;
-        public final C colKey;
-        public final V value;
-
-
-        public Entry(R rowKey, C colKey, V value) {
-            this.rowKey = rowKey;
-            this.colKey = colKey;
-            this.value = value;
-        }
-
-        @Override
-        public String toString() {
-            return "Entry{" +
-                    "rowKey=" + rowKey +
-                    ", colKey=" + colKey +
-                    ", value=" + value +
-                    '}';
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            Entry<?, ?, ?> entry = (Entry<?, ?, ?>) o;
-            return Objects.equals(rowKey, entry.rowKey) &&
-                    Objects.equals(colKey, entry.colKey) &&
-                    Objects.equals(value, entry.value);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(rowKey, colKey, value);
-        }
     }
 }

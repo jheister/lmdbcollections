@@ -3,7 +3,6 @@ package jheister.lmdbcollections.collections;
 import jheister.lmdbcollections.LmdbStorageEnvironment;
 import jheister.lmdbcollections.TestBase;
 import jheister.lmdbcollections.Transaction;
-import jheister.lmdbcollections.collections.LmdbMap.Entry;
 import org.junit.Test;
 
 import static jheister.lmdbcollections.Codec.STRING_CODEC;

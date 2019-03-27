@@ -3,7 +3,6 @@ package jheister.lmdbcollections.collections;
 import jheister.lmdbcollections.LmdbStorageEnvironment;
 import jheister.lmdbcollections.TestBase;
 import jheister.lmdbcollections.Transaction;
-import jheister.lmdbcollections.collections.LmdbTable.Entry;
 import org.junit.Test;
 
 import static jheister.lmdbcollections.Codec.STRING_CODEC;
@@ -67,16 +66,16 @@ public class LmdbTableTest extends TestBase {
                 table.put(txn, "R3", "F", "9");
 
                 assertThat(collect(table.rowEntries(txn, "R1")), contains(
-                        new Entry<>("R1", "A", "4"),
-                        new Entry<>("R1", "B", "2")
+                        new Entry<>("A", "4"),
+                        new Entry<>("B", "2")
                 ));
                 assertThat(collect(table.rowEntries(txn, "R2")), contains(
-                        new Entry<>("R2", "C", "7"),
-                        new Entry<>("R2", "D", "5")
+                        new Entry<>("C", "7"),
+                        new Entry<>("D", "5")
                 ));
                 assertThat(collect(table.rowEntries(txn, "R3")), contains(
-                        new Entry<>("R3", "E", "8"),
-                        new Entry<>("R3", "F", "9")
+                        new Entry<>("E", "8"),
+                        new Entry<>("F", "9")
                 ));
             }
         }
@@ -96,14 +95,14 @@ public class LmdbTableTest extends TestBase {
                 table.put(txn, "AA", "c", "6");
 
                 assertThat(collect(table.rowEntries(txn, "A")), contains(
-                        new Entry<>("A", "Aa", "1"),
-                        new Entry<>("A", "Ab", "2"),
-                        new Entry<>("A", "Ac", "3")
+                        new Entry<>("Aa", "1"),
+                        new Entry<>("Ab", "2"),
+                        new Entry<>("Ac", "3")
                 ));
                 assertThat(collect(table.rowEntries(txn, "AA")), contains(
-                        new Entry<>("AA", "a", "4"),
-                        new Entry<>("AA", "b", "5"),
-                        new Entry<>("AA", "c", "6")
+                        new Entry<>("a", "4"),
+                        new Entry<>("b", "5"),
+                        new Entry<>("c", "6")
                 ));
             }
         }
@@ -120,8 +119,8 @@ public class LmdbTableTest extends TestBase {
                 table.put(txn, "row1", "col2", "Alternative");
 
                 assertThat(collect(table.rowEntries(txn, "row1")), contains(
-                        new Entry<>("row1", "col1", "Hello"),
-                        new Entry<>("row1", "col2", "Alternative")
+                        new Entry<>("col1", "Hello"),
+                        new Entry<>("col2", "Alternative")
                 ));
             }
         }

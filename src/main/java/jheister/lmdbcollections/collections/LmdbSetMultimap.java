@@ -21,6 +21,6 @@ public class LmdbSetMultimap<K, V> {
     }
 
     public Stream<V> get(Transaction txn, K key) {
-        return table.rowEntries(txn, key).map(e -> e.colKey);
+        return table.rowEntries(txn, key).map(e -> e.key);
     }
 }
