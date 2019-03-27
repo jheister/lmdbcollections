@@ -1,6 +1,7 @@
 package jheister.lmdbcollections;
 
 import org.junit.Rule;
+import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
@@ -11,6 +12,9 @@ import java.util.stream.Stream;
 public abstract class TestBase {
     @Rule
     public final TemporaryFolder tmp = new TemporaryFolder();
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     protected static <T> List<T> collect(Stream<T> stream) {
         try (Stream<T> s = stream) {

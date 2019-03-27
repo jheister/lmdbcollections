@@ -19,9 +19,6 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 
 public class LmdbSetTest extends TestBase {
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
-
     @Test public void
     can_add_elements() {
         try (LmdbStorageEnvironment env = createEnv()) {

@@ -1,9 +1,7 @@
 package jheister.lmdbcollections;
 
 import jheister.lmdbcollections.collections.LmdbSet;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.lmdbjava.Env;
 
 import java.nio.charset.StandardCharsets;
@@ -14,9 +12,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 public class LmdbStorageEnvironmentTest extends TestBase {
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
-
     @Test
     public void
     fails_when_storage_size_is_exceeded() {

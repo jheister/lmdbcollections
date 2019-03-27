@@ -4,6 +4,10 @@ import jheister.lmdbcollections.LmdbStorageEnvironment;
 import jheister.lmdbcollections.TestBase;
 import jheister.lmdbcollections.Transaction;
 import org.junit.Test;
+import org.lmdbjava.Dbi;
+
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static jheister.lmdbcollections.Codec.STRING_CODEC;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -76,5 +80,22 @@ public class LmdbSetMultimapTest extends TestBase {
         }
     }
 
-    //todo: test for max size of values in set
+    @Test public void
+    key_and_value_together_have_to_be_under_507B() {
+        try (LmdbStorageEnvironment env = createEnv()) {
+            LmdbSetMultimap<String, String> multimap = env.createSetMultimap("test", STRING_CODEC, STRING_CODEC);
+
+            String key_300 = IntStream.range(0, 300).mapToObj(k -> "A").collect(Collectors.joining());
+            String value_207 = IntStream.range(0, 207).mapToObj(k -> "A").collect(Collectors.joining());
+            String value_208 = IntStream.range(0, 208).mapToObj(k -> "A").collect(Collectors.joining());
+
+            try (Transaction txn = env.txnWrite()) {
+                multimap.put(txn, key_300, value_207);
+                assertThat(collect(multimap.get(txn, key_300)), contains(value_207));
+
+                thrown.expect(Dbi.BadValueSizeException.class);
+                multimap.put(txn, key_300, value_208);
+            }
+        }
+    }
 }
