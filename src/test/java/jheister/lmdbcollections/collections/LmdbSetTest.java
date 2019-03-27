@@ -85,7 +85,5 @@ public class LmdbSetTest extends TestBase {
         }
     }
 
-    //todo: basic test of transactions
-    //todo: test with multiple collections + these in transactions
-    //todo: test hitting max size limits
+    //todo: test for max size of values in set
 }

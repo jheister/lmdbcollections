@@ -19,8 +19,12 @@ public abstract class TestBase {
     }
 
     protected LmdbStorageEnvironment createEnv() {
+        return createEnv(1024 * 1024 * 20);
+    }
+
+    protected LmdbStorageEnvironment createEnv(long maxSize) {
         try {
-            return LmdbStorageEnvironment.create(tmp.newFolder(), 1024 * 1024 * 20);
+            return LmdbStorageEnvironment.create(tmp.newFolder(), maxSize);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

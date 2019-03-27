@@ -41,15 +41,19 @@ public class LmdbStorageEnvironment implements AutoCloseable {
     }
 
     public static LmdbStorageEnvironment create(File path, long maxSize) {
-        //todo: work out if mapSize is per DB or global
+        //todo: what are the min/max values? - should be pagesizes etc
         //todo: work out what a good value for maxDbs would be
         return new LmdbStorageEnvironment(Env.create()
                 .setMapSize(maxSize)
-                .setMaxDbs(2)
+                .setMaxDbs(3)
                 .open(path));
     }
 
     public Txn<ByteBuffer> txnWrite() {
         return env.txnWrite();
+    }
+
+    public Txn<ByteBuffer> txnRead() {
+        return env.txnRead();
     }
 }
