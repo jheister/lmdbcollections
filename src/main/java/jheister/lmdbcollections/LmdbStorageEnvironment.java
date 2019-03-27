@@ -5,6 +5,7 @@ import jheister.lmdbcollections.collections.LmdbSet;
 import jheister.lmdbcollections.collections.LmdbSetMultimap;
 import jheister.lmdbcollections.collections.LmdbTable;
 import org.lmdbjava.Env;
+import org.lmdbjava.EnvFlags;
 
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -44,7 +45,7 @@ public class LmdbStorageEnvironment implements AutoCloseable {
         return new LmdbStorageEnvironment(Env.create()
                 .setMapSize(maxTotalSize)
                 .setMaxDbs(maxCollections)
-                .open(path));
+                .open(path, EnvFlags.MDB_WRITEMAP, EnvFlags.MDB_NOSYNC, EnvFlags.MDB_NOTLS));
     }
 
     public Transaction txnWrite() {

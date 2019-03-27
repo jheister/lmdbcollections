@@ -77,5 +77,21 @@ public class LmdbStorageEnvironmentTest extends TestBase {
         }
     }
 
-    //todo: work out why multiple reads in same thread don't work
+    @Test public void
+    can_have_multiple_readers_in_one_thread() {
+        try (LmdbStorageEnvironment env = createEnv(1024 * 1024)) {
+            LmdbSet<String> set1 = env.createSet("test1", STRING_CODEC);
+
+            try (Transaction txn = env.txnWrite()) {
+                set1.add(txn, "A");
+                txn.commit();
+            }
+
+            try (Transaction txn1 = env.txnRead();
+                 Transaction txn2 = env.txnRead()) {
+                assertThat(set1.contains(txn1, "A"), is(true));
+                assertThat(set1.contains(txn2, "A"), is(true));
+            }
+        }
+    }
 }
