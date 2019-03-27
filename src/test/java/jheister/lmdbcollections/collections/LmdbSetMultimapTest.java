@@ -77,4 +77,6 @@ public class LmdbSetMultimapTest extends TestBase {
             }
         }
     }
+
+    //todo: test for max size of values in set
 }

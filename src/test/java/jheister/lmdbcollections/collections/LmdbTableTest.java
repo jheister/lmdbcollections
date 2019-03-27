@@ -6,7 +6,6 @@ import jheister.lmdbcollections.collections.LmdbTable.Entry;
 import org.junit.Test;
 import org.lmdbjava.Txn;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import static jheister.lmdbcollections.Codec.STRING_CODEC;
@@ -114,7 +113,7 @@ public class LmdbTableTest extends TestBase {
     }
 
     @Test public void
-    does_not_store_duplicates_on_keys() throws IOException {
+    does_not_store_duplicates_on_keys() {
         try (LmdbStorageEnvironment env = createEnv()) {
             LmdbTable<String, String, String> table = env.createTable("test", STRING_CODEC, STRING_CODEC, STRING_CODEC);
 
@@ -130,4 +129,6 @@ public class LmdbTableTest extends TestBase {
             }
         }
     }
+
+    //todo: test for max size of values in set
 }
