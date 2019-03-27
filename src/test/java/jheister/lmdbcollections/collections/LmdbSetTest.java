@@ -3,11 +3,9 @@ package jheister.lmdbcollections.collections;
 import jheister.lmdbcollections.LmdbStorageEnvironment;
 import jheister.lmdbcollections.TestBase;
 import jheister.lmdbcollections.Transaction;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.lmdbjava.Dbi;
 
+import java.nio.BufferOverflowException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -101,7 +99,7 @@ public class LmdbSetTest extends TestBase {
                 set.forEach(txn, values::add);
                 assertThat(values, contains(maxValue));
 
-                thrown.expect(Dbi.BadValueSizeException.class);
+                thrown.expect(BufferOverflowException.class);
                 set.add(txn, maxValue + "A");
             }
         }

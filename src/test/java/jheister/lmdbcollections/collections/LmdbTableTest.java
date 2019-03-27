@@ -4,8 +4,8 @@ import jheister.lmdbcollections.LmdbStorageEnvironment;
 import jheister.lmdbcollections.TestBase;
 import jheister.lmdbcollections.Transaction;
 import org.junit.Test;
-import org.lmdbjava.Dbi;
 
+import java.nio.BufferOverflowException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -143,7 +143,7 @@ public class LmdbTableTest extends TestBase {
                 multimap.put(txn, rowKey_300, colKey_207, "value");
                 assertThat(multimap.get(txn, rowKey_300, colKey_207), is("value"));
 
-                thrown.expect(Dbi.BadValueSizeException.class);
+                thrown.expect(BufferOverflowException.class);
                 multimap.put(txn, rowKey_300, colKey_208, "value");
             }
         }
