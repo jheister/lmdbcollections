@@ -82,17 +82,19 @@ public class LmdbMapTest extends TestBase {
     }
 
     @Test public void
-    can_have_int_string_map() {
+    int_map_is_sorted_on_byte_representation_of_keys() {
         try (LmdbStorageEnvironment env = createEnv()) {
             LmdbMap<Integer, String> map = env.createMap("test", INTEGER_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
                 map.put(txn, 6, "Hello");
                 map.put(txn, 3, "Alternative");
+                map.put(txn, -1, "negative");
 
                 assertThat(collect(map.entries(txn)), contains(
                         new Entry<>(3, "Alternative"),
-                        new Entry<>(6, "Hello")
+                        new Entry<>(6, "Hello"),
+                        new Entry<>(-1, "negative")
                 ));
             }
         }
