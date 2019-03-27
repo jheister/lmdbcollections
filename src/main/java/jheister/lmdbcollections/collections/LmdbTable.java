@@ -51,7 +51,6 @@ public class LmdbTable<R, C, V> {
         db.delete(txn.lmdbTxn, txn.keyBuffer);
     }
 
-    //todo: replace with forEach to avoid open streams?
     public Stream<Entry<R, C, V>> rowEntries(Transaction txn, R rowKey) {
         txn.keyBuffer.clear();
         fillRowKey(txn.keyBuffer, rowKey);

@@ -20,7 +20,6 @@ public class LmdbSetMultimap<K, V> {
         table.remove(txn, key, value);
     }
 
-    //todo: replace with foreach?
     public Stream<V> get(Transaction txn, K key) {
         return table.rowEntries(txn, key).map(e -> e.colKey);
     }

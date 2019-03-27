@@ -46,7 +46,6 @@ public class LmdbMap<K, V> {
         db.delete(txn.lmdbTxn, txn.keyBuffer);
     }
 
-    //todo: replace with forEach to avoid open streams?
     public Stream<Entry<K, V>> entries(Transaction txn) {
         CursorIterator<ByteBuffer> iterator = db.iterate(txn.lmdbTxn);
         return stream(spliteratorUnknownSize(iterator, Spliterator.ORDERED), false).map(e -> {
