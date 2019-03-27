@@ -14,10 +14,6 @@ import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.StreamSupport.stream;
 
 public class LmdbMap<K, V> {
-    //todo: work out concurrency issues. - concurrent read/write will fail badly
-    private final ByteBuffer keyBuffer = ByteBuffer.allocateDirect(1024);
-    private final ByteBuffer valueBuffer = ByteBuffer.allocateDirect(1024);
-
     private final Dbi<ByteBuffer> db;
     private final Codec<K> keyCodec;
     private final Codec<V> valueCodec;
@@ -29,16 +25,16 @@ public class LmdbMap<K, V> {
     }
 
     public void put(Transaction txn, K key, V value) {
-        fillKeyBuffer(key);
-        valueBuffer.clear();
-        valueCodec.serialize(value, valueBuffer);
-        valueBuffer.flip();
-        db.put(txn.lmdbTxn, keyBuffer, valueBuffer);
+        fillKeyBuffer(txn.keyBuffer, key);
+        txn.valueBuffer.clear();
+        valueCodec.serialize(value, txn.valueBuffer);
+        txn.valueBuffer.flip();
+        db.put(txn.lmdbTxn, txn.keyBuffer, txn.valueBuffer);
     }
 
     public V get(Transaction txn, K key) {
-        fillKeyBuffer(key);
-        ByteBuffer valueBuffer = db.get(txn.lmdbTxn, keyBuffer);
+        fillKeyBuffer(txn.keyBuffer, key);
+        ByteBuffer valueBuffer = db.get(txn.lmdbTxn, txn.keyBuffer);
         if (valueBuffer == null) {
             return null;
         }
@@ -46,8 +42,8 @@ public class LmdbMap<K, V> {
     }
 
     public void remove(Transaction txn, K key) {
-        fillKeyBuffer(key);
-        db.delete(txn.lmdbTxn, keyBuffer);
+        fillKeyBuffer(txn.keyBuffer, key);
+        db.delete(txn.lmdbTxn, txn.keyBuffer);
     }
 
     //todo: replace with forEach to avoid open streams?
@@ -58,7 +54,7 @@ public class LmdbMap<K, V> {
         }).onClose(iterator::close);
     }
 
-    private void fillKeyBuffer(K key) {
+    private void fillKeyBuffer(ByteBuffer keyBuffer, K key) {
         keyBuffer.clear();
         keyCodec.serialize(key, keyBuffer);
         keyBuffer.flip();

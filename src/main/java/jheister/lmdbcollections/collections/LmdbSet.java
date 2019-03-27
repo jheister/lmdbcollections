@@ -8,9 +8,6 @@ import java.nio.ByteBuffer;
 import java.util.function.Consumer;
 
 public class LmdbSet<T> {
-    //todo: work out concurrency issues. - concurrent read/write will fail badly
-    private final ByteBuffer buffer = ByteBuffer.allocateDirect(1024);
-
     private final Dbi<ByteBuffer> db;
     private final Codec<T> valueCodec;
 
@@ -20,11 +17,11 @@ public class LmdbSet<T> {
     }
 
     public void add(Transaction txn, T value) {
-        buffer.clear();
-        valueCodec.serialize(value, buffer);
-        buffer.flip();
+        txn.keyBuffer.clear();
+        valueCodec.serialize(value, txn.keyBuffer);
+        txn.keyBuffer.flip();
 
-        db.reserve(txn.lmdbTxn, buffer, 0);
+        db.reserve(txn.lmdbTxn, txn.keyBuffer, 0);
     }
 
     public void forEach(Transaction txn, Consumer<? super T> consumer) {
@@ -38,9 +35,9 @@ public class LmdbSet<T> {
     }
 
     public boolean contains(Transaction txn, T value) {
-        buffer.clear();
-        valueCodec.serialize(value, buffer);
-        buffer.flip();
-        return db.get(txn.lmdbTxn, buffer) != null;
+        txn.keyBuffer.clear();
+        valueCodec.serialize(value, txn.keyBuffer);
+        txn.keyBuffer.flip();
+        return db.get(txn.lmdbTxn, txn.keyBuffer) != null;
     }
 }

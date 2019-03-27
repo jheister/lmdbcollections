@@ -15,10 +15,6 @@ import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.StreamSupport.stream;
 
 public class LmdbTable<R, C, V> {
-    //todo: work out concurrency issues. - concurrent read/write will fail badly
-    private final ByteBuffer keyBuffer = ByteBuffer.allocateDirect(1024);//todo: work out how to specify buffer sizes etc.
-    private final ByteBuffer valueBuffer = ByteBuffer.allocateDirect(1024);
-
     private final Dbi<ByteBuffer> db;
     private final Codec<R> rowKeyCodec;
     private final Codec<C> colKeyCodec;
@@ -32,17 +28,17 @@ public class LmdbTable<R, C, V> {
     }
 
     public void put(Transaction txn, R rowKey, C colKey, V value) {
-        fillKeyBuffer(rowKey, colKey);
-        valueBuffer.clear();
-        codec.serialize(value, valueBuffer);
-        valueBuffer.flip();
-        db.put(txn.lmdbTxn, keyBuffer, valueBuffer);
+        fillKeyBuffer(txn.keyBuffer, rowKey, colKey);
+        txn.valueBuffer.clear();
+        codec.serialize(value, txn.valueBuffer);
+        txn.valueBuffer.flip();
+        db.put(txn.lmdbTxn, txn.keyBuffer, txn.valueBuffer);
     }
 
     public V get(Transaction txn, R rowKey, C colKey) {
-        fillKeyBuffer(rowKey, colKey);
+        fillKeyBuffer(txn.keyBuffer, rowKey, colKey);
 
-        ByteBuffer valueBuffer = db.get(txn.lmdbTxn, keyBuffer);
+        ByteBuffer valueBuffer = db.get(txn.lmdbTxn, txn.keyBuffer);
         if (valueBuffer == null) {
             return null;
         }
@@ -50,18 +46,18 @@ public class LmdbTable<R, C, V> {
     }
 
     public void remove(Transaction txn, R rowKey, C colKey) {
-        fillKeyBuffer(rowKey, colKey);
+        fillKeyBuffer(txn.keyBuffer, rowKey, colKey);
 
-        db.delete(txn.lmdbTxn, keyBuffer);
+        db.delete(txn.lmdbTxn, txn.keyBuffer);
     }
 
     //todo: replace with forEach to avoid open streams?
     public Stream<Entry<R, C, V>> rowEntries(Transaction txn, R rowKey) {
-        keyBuffer.clear();
-        fillRowKey(rowKey);
-        keyBuffer.flip();
+        txn.keyBuffer.clear();
+        fillRowKey(txn.keyBuffer, rowKey);
+        txn.keyBuffer.flip();
 
-        CursorIterator<ByteBuffer> iterator = db.iterate(txn.lmdbTxn, KeyRange.atLeast(keyBuffer));
+        CursorIterator<ByteBuffer> iterator = db.iterate(txn.lmdbTxn, KeyRange.atLeast(txn.keyBuffer));
 
         return stream(spliteratorUnknownSize(iterator, Spliterator.ORDERED), false)
                 .map(e -> {
@@ -82,15 +78,15 @@ public class LmdbTable<R, C, V> {
                 }).takeWhile(e -> rowKey.equals(e.rowKey)).onClose(iterator::close);
     }
 
-    private void fillKeyBuffer(R rowKey, C colKey) {
+    private void fillKeyBuffer(ByteBuffer keyBuffer, R rowKey, C colKey) {
         keyBuffer.clear();
 
-        fillRowKey(rowKey);
+        fillRowKey(keyBuffer, rowKey);
         colKeyCodec.serialize(colKey, keyBuffer);
         keyBuffer.flip();
     }
 
-    private void fillRowKey(R rowKey) {
+    private void fillRowKey(ByteBuffer keyBuffer, R rowKey) {
         keyBuffer.position(4);
         rowKeyCodec.serialize(rowKey, keyBuffer);
         int rowKeySize = keyBuffer.position() - 4;
