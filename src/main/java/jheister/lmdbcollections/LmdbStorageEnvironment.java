@@ -13,6 +13,9 @@ import java.nio.ByteBuffer;
 import static org.lmdbjava.DbiFlags.MDB_CREATE;
 
 public class LmdbStorageEnvironment implements AutoCloseable {
+    public static final int LMDB_MAX_KEY = 511;
+    public static final int MAX_VALUE_SIZE = 1024;
+
     private final Env<ByteBuffer> env;
 
     public LmdbStorageEnvironment(Env<ByteBuffer> env) {
@@ -49,10 +52,14 @@ public class LmdbStorageEnvironment implements AutoCloseable {
 
     //todo: work out how to cache transaction objects / their buffers - count should match max transactions
     public Transaction txnWrite() {
-        return new Transaction(env.txnWrite());
+        return new Transaction(env.txnWrite(), ByteBuffer.allocateDirect(LMDB_MAX_KEY), ByteBuffer.allocateDirect(MAX_VALUE_SIZE), this::checkin);
     }
 
     public Transaction txnRead() {
-        return new Transaction(env.txnRead());
+        return new Transaction(env.txnRead(), ByteBuffer.allocateDirect(LMDB_MAX_KEY), ByteBuffer.allocateDirect(MAX_VALUE_SIZE), this::checkin);
+    }
+
+    private void checkin(Transaction transaction) {
+
     }
 }

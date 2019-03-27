@@ -3,20 +3,27 @@ package jheister.lmdbcollections;
 import org.lmdbjava.Txn;
 
 import java.nio.ByteBuffer;
+import java.util.function.Consumer;
 
 public class Transaction implements AutoCloseable {
-    public static final int LmdbMaxKey = 511;
-    
     public final Txn<ByteBuffer> lmdbTxn;
-    public final ByteBuffer keyBuffer = ByteBuffer.allocateDirect(LmdbMaxKey);
-    public final ByteBuffer valueBuffer = ByteBuffer.allocateDirect(1024);
+    public final ByteBuffer keyBuffer;
+    public final ByteBuffer valueBuffer;
+    private final Consumer<Transaction> checkinFunction;
 
-    public Transaction(Txn<ByteBuffer> lmdbTxn) {
+    public Transaction(Txn<ByteBuffer> lmdbTxn,
+                       ByteBuffer keyBuffer,
+                       ByteBuffer valueBuffer,
+                       Consumer<Transaction> checkinFunction) {
         this.lmdbTxn = lmdbTxn;
+        this.keyBuffer = keyBuffer;
+        this.valueBuffer = valueBuffer;
+        this.checkinFunction = checkinFunction;
     }
 
     @Override
     public void close() {
+        checkinFunction.accept(this);
         lmdbTxn.close();
     }
 
