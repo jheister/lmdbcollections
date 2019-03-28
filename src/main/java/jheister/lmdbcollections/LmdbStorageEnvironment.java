@@ -13,10 +13,12 @@ import org.lmdbjava.Txn;
 
 import java.io.File;
 import java.nio.ByteBuffer;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.stream.Collectors.toList;
 import static org.lmdbjava.DbiFlags.MDB_CREATE;
 
 public class LmdbStorageEnvironment implements AutoCloseable {
@@ -76,16 +78,78 @@ public class LmdbStorageEnvironment implements AutoCloseable {
         threadLocalTransaction.set(null);
     }
 
-    public Map<String, Stat> stats() {
-        return env.getDbiNames().stream()
-                .collect(Collectors.toMap(b -> new String(b, UTF_8), b -> {
+    public List<Stats> stats() {
+        return Stream.concat(Stream.of(stats("", env.stat())), env.getDbiNames().stream()
+                .map(b -> {
                     //todo: is it bad to open it again. Should probably be cached
                     Dbi<ByteBuffer> db = env.openDbi(b);
                     try (Txn<ByteBuffer> txn = env.txnRead()) {
-                        return db.stat(txn);
+                        return stats(new String(b, UTF_8), db.stat(txn));
                     } finally {
                         db.close();
                     }
-                }));
+                })).collect(toList());
+    }
+
+    private static Stats stats(String name, Stat stat) {
+        return new Stats(name, stat.branchPages, stat.depth, stat.entries, stat.leafPages, stat.overflowPages, stat.pageSize);
+    }
+
+    public static class Stats {
+        public final String name;
+        public final long branchPages;
+        public final int depth;
+        public final long entries;
+        public final long leafPages;
+        public final long overflowPages;
+        public final int pageSize;
+
+        public Stats(String name,
+                     long branchPages,
+                     int depth,
+                     long entries,
+                     long leafPages,
+                     long overflowPages,
+                     int pageSize) {
+            this.name = name;
+            this.branchPages = branchPages;
+            this.depth = depth;
+            this.entries = entries;
+            this.leafPages = leafPages;
+            this.overflowPages = overflowPages;
+            this.pageSize = pageSize;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Stats stats = (Stats) o;
+            return branchPages == stats.branchPages &&
+                    depth == stats.depth &&
+                    entries == stats.entries &&
+                    leafPages == stats.leafPages &&
+                    overflowPages == stats.overflowPages &&
+                    pageSize == stats.pageSize &&
+                    Objects.equals(name, stats.name);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(name, branchPages, depth, entries, leafPages, overflowPages, pageSize);
+        }
+
+        @Override
+        public String toString() {
+            return "Stats{" +
+                    "name='" + name + '\'' +
+                    ", branchPages=" + branchPages +
+                    ", depth=" + depth +
+                    ", entries=" + entries +
+                    ", leafPages=" + leafPages +
+                    ", overflowPages=" + overflowPages +
+                    ", pageSize=" + pageSize +
+                    '}';
+        }
     }
 }

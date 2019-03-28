@@ -1,5 +1,6 @@
 package jheister.lmdbcollections;
 
+import jheister.lmdbcollections.LmdbStorageEnvironment.Stats;
 import jheister.lmdbcollections.collections.LmdbSet;
 import org.junit.Test;
 import org.lmdbjava.Env;
@@ -12,6 +13,7 @@ import java.util.concurrent.Executors;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static jheister.lmdbcollections.codec.Codec.STRING_CODEC;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 
 public class LmdbStorageEnvironmentTest extends TestBase {
@@ -86,12 +88,14 @@ public class LmdbStorageEnvironmentTest extends TestBase {
             try (Transaction txn = env.txnWrite()) {
                 set1.add("A");
                 set2.add("B");
+                txn.commit();
             }
 
-            //todo: assert results
-            env.stats().forEach((k, v) -> {
-                System.out.println(k + ": " + v);
-            });
+            assertThat(env.stats(), contains(
+                    new Stats("", 0, 1, 2, 1, 0, 4096),
+                    new Stats("test1", 0, 1, 1, 1, 0, 4096),
+                    new Stats("test2", 0, 1, 1, 1, 0, 4096)
+            ));
         }
     }
 
