@@ -1,7 +1,6 @@
 package jheister.lmdbcollections.collections;
 
 import jheister.lmdbcollections.codec.Codec.Empty;
-import jheister.lmdbcollections.Transaction;
 
 import java.util.stream.Stream;
 
@@ -12,15 +11,15 @@ public class LmdbSetMultimap<K, V> {
         this.table = table;
     }
 
-    public void put(Transaction txn, K key, V value) {
-        table.put(txn, key, value, Empty.INSTANCE);
+    public void put(K key, V value) {
+        table.put(key, value, Empty.INSTANCE);
     }
 
-    public void remove(Transaction txn, K key, V value) {
-        table.remove(txn, key, value);
+    public void remove(K key, V value) {
+        table.remove(key, value);
     }
 
-    public Stream<V> get(Transaction txn, K key) {
-        return table.rowEntries(txn, key).map(e -> e.key);
+    public Stream<V> get(K key) {
+        return table.rowEntries(key).map(e -> e.key);
     }
 }

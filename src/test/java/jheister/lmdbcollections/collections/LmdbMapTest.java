@@ -20,11 +20,11 @@ public class LmdbMapTest extends TestBase {
             LmdbMap<String, String> map = env.createMap("test", STRING_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
-                map.put(txn, "k1", "Hello");
-                map.put(txn, "k2", "Hi");
+                map.put("k1", "Hello");
+                map.put("k2", "Hi");
 
-                assertThat(map.get(txn, "k1"), is("Hello"));
-                assertThat(map.get(txn, "k2"), is("Hi"));
+                assertThat(map.get("k1"), is("Hello"));
+                assertThat(map.get("k2"), is("Hi"));
             }
         }
     }
@@ -35,13 +35,13 @@ public class LmdbMapTest extends TestBase {
             LmdbMap<String, String> map = env.createMap("test", STRING_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
-                map.put(txn, "key1", "Hello");
-                map.put(txn, "key2", "World");
+                map.put("key1", "Hello");
+                map.put("key2", "World");
 
-                map.remove(txn, "key2");
+                map.remove("key2");
 
-                assertThat(map.get(txn, "key1"), is("Hello"));
-                assertThat(map.get(txn, "key2"), nullValue());
+                assertThat(map.get("key1"), is("Hello"));
+                assertThat(map.get("key2"), nullValue());
             }
         }
     }
@@ -52,11 +52,11 @@ public class LmdbMapTest extends TestBase {
             LmdbMap<String, String> map = env.createMap("test", STRING_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
-                map.put(txn, "A", "Hello");
-                map.put(txn, "C", "Some");
-                map.put(txn, "B", "Hi");
+                map.put("A", "Hello");
+                map.put("C", "Some");
+                map.put("B", "Hi");
 
-                assertThat(collect(map.entries(txn)), contains(
+                assertThat(collect(map.entries()), contains(
                         new Entry<>("A", "Hello"),
                         new Entry<>("B", "Hi"),
                         new Entry<>("C", "Some")
@@ -71,10 +71,10 @@ public class LmdbMapTest extends TestBase {
             LmdbMap<String, String> map = env.createMap("test", STRING_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
-                map.put(txn, "key1", "Hello");
-                map.put(txn, "key1", "Alternative");
+                map.put("key1", "Hello");
+                map.put("key1", "Alternative");
 
-                assertThat(collect(map.entries(txn)), contains(
+                assertThat(collect(map.entries()), contains(
                         new Entry<>("key1", "Alternative")
                 ));
             }
@@ -87,11 +87,11 @@ public class LmdbMapTest extends TestBase {
             LmdbMap<Integer, String> map = env.createMap("test", INTEGER_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
-                map.put(txn, 6, "Hello");
-                map.put(txn, 3, "Alternative");
-                map.put(txn, -1, "negative");
+                map.put(6, "Hello");
+                map.put(3, "Alternative");
+                map.put(-1, "negative");
 
-                assertThat(collect(map.entries(txn)), contains(
+                assertThat(collect(map.entries()), contains(
                         new Entry<>(3, "Alternative"),
                         new Entry<>(6, "Hello"),
                         new Entry<>(-1, "negative")

@@ -21,13 +21,13 @@ public class LmdbSetMultimapTest extends TestBase {
             LmdbSetMultimap<String, String> map = env.createSetMultimap("test", STRING_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
-                map.put(txn, "k1", "Hello");
-                map.put(txn, "k1", "World");
-                map.put(txn, "k2", "Hi");
-                map.put(txn, "k2", "There");
+                map.put("k1", "Hello");
+                map.put("k1", "World");
+                map.put("k2", "Hi");
+                map.put("k2", "There");
 
-                assertThat(collect(map.get(txn, "k1")), contains("Hello", "World"));
-                assertThat(collect(map.get(txn, "k2")), contains("Hi", "There"));
+                assertThat(collect(map.get("k1")), contains("Hello", "World"));
+                assertThat(collect(map.get("k2")), contains("Hi", "There"));
             }
         }
     }
@@ -38,16 +38,16 @@ public class LmdbSetMultimapTest extends TestBase {
             LmdbSetMultimap<String, String> map = env.createSetMultimap("test", STRING_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
-                map.put(txn, "k1", "Hello");
-                map.put(txn, "k1", "World");
-                map.put(txn, "k2", "Hi");
-                map.put(txn, "k2", "There");
+                map.put("k1", "Hello");
+                map.put("k1", "World");
+                map.put("k2", "Hi");
+                map.put("k2", "There");
 
-                map.remove(txn, "k1", "World");
-                map.remove(txn, "k1", "absent");
+                map.remove("k1", "World");
+                map.remove("k1", "absent");
 
-                assertThat(collect(map.get(txn, "k1")), contains("Hello"));
-                assertThat(collect(map.get(txn, "k2")), contains("Hi", "There"));
+                assertThat(collect(map.get("k1")), contains("Hello"));
+                assertThat(collect(map.get("k2")), contains("Hi", "There"));
             }
         }
     }
@@ -58,11 +58,11 @@ public class LmdbSetMultimapTest extends TestBase {
             LmdbSetMultimap<String, String> map = env.createSetMultimap("test", STRING_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
-                map.put(txn, "k1", "Hello");
-                map.put(txn, "k1", "Hello");
-                map.put(txn, "k1", "Hello");
+                map.put("k1", "Hello");
+                map.put("k1", "Hello");
+                map.put("k1", "Hello");
 
-                assertThat(collect(map.get(txn, "k1")), contains("Hello"));
+                assertThat(collect(map.get("k1")), contains("Hello"));
             }
         }
     }
@@ -73,9 +73,9 @@ public class LmdbSetMultimapTest extends TestBase {
             LmdbSetMultimap<String, String> map = env.createSetMultimap("test", STRING_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
-                map.put(txn, "k1", "Hello");
+                map.put("k1", "Hello");
 
-                assertThat(collect(map.get(txn, "another")), emptyIterable());
+                assertThat(collect(map.get("another")), emptyIterable());
             }
         }
     }
@@ -90,11 +90,11 @@ public class LmdbSetMultimapTest extends TestBase {
             String value_208 = IntStream.range(0, 208).mapToObj(k -> "A").collect(Collectors.joining());
 
             try (Transaction txn = env.txnWrite()) {
-                multimap.put(txn, key_300, value_207);
-                assertThat(collect(multimap.get(txn, key_300)), contains(value_207));
+                multimap.put(key_300, value_207);
+                assertThat(collect(multimap.get(key_300)), contains(value_207));
 
                 thrown.expect(BufferOverflowException.class);
-                multimap.put(txn, key_300, value_208);
+                multimap.put(key_300, value_208);
             }
         }
     }

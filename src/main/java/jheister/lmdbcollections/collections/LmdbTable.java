@@ -1,7 +1,7 @@
 package jheister.lmdbcollections.collections;
 
-import jheister.lmdbcollections.codec.Codec;
 import jheister.lmdbcollections.Transaction;
+import jheister.lmdbcollections.codec.Codec;
 import org.lmdbjava.CursorIterator;
 import org.lmdbjava.Dbi;
 import org.lmdbjava.KeyRange;
@@ -19,15 +19,18 @@ public class LmdbTable<R, C, V> {
     private final Codec<R> rowKeyCodec;
     private final Codec<C> colKeyCodec;
     private final Codec<V> codec;
+    private final ThreadLocal<Transaction> threadLocalTransaction;
 
-    public LmdbTable(Dbi<ByteBuffer> db, Codec<R> rowKeyCodec, Codec<C> colKeyCodec, Codec<V> codec) {
+    public LmdbTable(Dbi<ByteBuffer> db, Codec<R> rowKeyCodec, Codec<C> colKeyCodec, Codec<V> codec, ThreadLocal<Transaction> threadLocalTransaction) {
         this.db = db;
         this.rowKeyCodec = rowKeyCodec;
         this.colKeyCodec = colKeyCodec;
         this.codec = codec;
+        this.threadLocalTransaction = threadLocalTransaction;
     }
 
-    public void put(Transaction txn, R rowKey, C colKey, V value) {
+    public void put(R rowKey, C colKey, V value) {
+        Transaction txn = localTransaction();
         fillKeyBuffer(txn.keyBuffer, rowKey, colKey);
         txn.valueBuffer.clear();
         codec.serialize(value, txn.valueBuffer);
@@ -35,7 +38,8 @@ public class LmdbTable<R, C, V> {
         db.put(txn.lmdbTxn, txn.keyBuffer, txn.valueBuffer);
     }
 
-    public V get(Transaction txn, R rowKey, C colKey) {
+    public V get(R rowKey, C colKey) {
+        Transaction txn = localTransaction();
         fillKeyBuffer(txn.keyBuffer, rowKey, colKey);
 
         ByteBuffer valueBuffer = db.get(txn.lmdbTxn, txn.keyBuffer);
@@ -45,13 +49,15 @@ public class LmdbTable<R, C, V> {
         return codec.deserialize(valueBuffer);
     }
 
-    public void remove(Transaction txn, R rowKey, C colKey) {
+    public void remove(R rowKey, C colKey) {
+        Transaction txn = localTransaction();
         fillKeyBuffer(txn.keyBuffer, rowKey, colKey);
 
         db.delete(txn.lmdbTxn, txn.keyBuffer);
     }
 
-    public Stream<Entry<C, V>> rowEntries(Transaction txn, R rowKey) {
+    public Stream<Entry<C, V>> rowEntries(R rowKey) {
+        Transaction txn = localTransaction();
         txn.keyBuffer.clear();
         fillRowKey(txn.keyBuffer, rowKey);
         txn.keyBuffer.flip();
@@ -100,5 +106,13 @@ public class LmdbTable<R, C, V> {
         rowKeyCodec.serialize(rowKey, keyBuffer);
         int rowKeySize = keyBuffer.position() - 4;
         keyBuffer.putInt(0, rowKeySize);
+    }
+
+    private Transaction localTransaction() {
+        Transaction txn = threadLocalTransaction.get();
+        if (txn == null) {
+            throw new RuntimeException("Not in a transaction");
+        }
+        return txn;
     }
 }

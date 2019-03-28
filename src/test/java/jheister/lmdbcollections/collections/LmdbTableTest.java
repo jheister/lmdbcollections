@@ -22,15 +22,15 @@ public class LmdbTableTest extends TestBase {
             LmdbTable<String, String, String> table = env.createTable("test", STRING_CODEC, STRING_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
-                table.put(txn, "row1", "col1", "Hello");
-                table.put(txn, "row1", "col2", "World");
-                table.put(txn, "row2", "col1", "Hi");
-                table.put(txn, "row2", "col2", "Alternate column");
+                table.put("row1", "col1", "Hello");
+                table.put("row1", "col2", "World");
+                table.put("row2", "col1", "Hi");
+                table.put("row2", "col2", "Alternate column");
 
-                assertThat(table.get(txn, "row1", "col1"), is("Hello"));
-                assertThat(table.get(txn, "row1", "col2"), is("World"));
-                assertThat(table.get(txn, "row2", "col1"), is("Hi"));
-                assertThat(table.get(txn, "row2", "col2"), is("Alternate column"));
+                assertThat(table.get("row1", "col1"), is("Hello"));
+                assertThat(table.get("row1", "col2"), is("World"));
+                assertThat(table.get("row2", "col1"), is("Hi"));
+                assertThat(table.get("row2", "col2"), is("Alternate column"));
             }
         }
     }
@@ -41,17 +41,17 @@ public class LmdbTableTest extends TestBase {
             LmdbTable<String, String, String> table = env.createTable("test", STRING_CODEC, STRING_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
-                table.put(txn, "row1", "col1", "Hello");
-                table.put(txn, "row1", "col2", "World");
-                table.put(txn, "row2", "col1", "Hi");
-                table.put(txn, "row2", "col2", "Alternate column");
+                table.put("row1", "col1", "Hello");
+                table.put("row1", "col2", "World");
+                table.put("row2", "col1", "Hi");
+                table.put("row2", "col2", "Alternate column");
 
-                table.remove(txn, "row1", "col2");
+                table.remove("row1", "col2");
 
-                assertThat(table.get(txn, "row1", "col1"), is("Hello"));
-                assertThat(table.get(txn, "row1", "col2"), nullValue());
-                assertThat(table.get(txn, "row2", "col1"), is("Hi"));
-                assertThat(table.get(txn, "row2", "col2"), is("Alternate column"));
+                assertThat(table.get("row1", "col1"), is("Hello"));
+                assertThat(table.get("row1", "col2"), nullValue());
+                assertThat(table.get("row2", "col1"), is("Hi"));
+                assertThat(table.get("row2", "col2"), is("Alternate column"));
             }
         }
     }
@@ -62,22 +62,22 @@ public class LmdbTableTest extends TestBase {
             LmdbTable<String, String, String> table = env.createTable("test", STRING_CODEC, STRING_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
-                table.put(txn, "R1", "B", "2");
-                table.put(txn, "R1", "A", "4");
-                table.put(txn, "R2", "C", "7");
-                table.put(txn, "R2", "D", "5");
-                table.put(txn, "R3", "E", "8");
-                table.put(txn, "R3", "F", "9");
+                table.put("R1", "B", "2");
+                table.put("R1", "A", "4");
+                table.put("R2", "C", "7");
+                table.put("R2", "D", "5");
+                table.put("R3", "E", "8");
+                table.put("R3", "F", "9");
 
-                assertThat(collect(table.rowEntries(txn, "R1")), contains(
+                assertThat(collect(table.rowEntries("R1")), contains(
                         new Entry<>("A", "4"),
                         new Entry<>("B", "2")
                 ));
-                assertThat(collect(table.rowEntries(txn, "R2")), contains(
+                assertThat(collect(table.rowEntries("R2")), contains(
                         new Entry<>("C", "7"),
                         new Entry<>("D", "5")
                 ));
-                assertThat(collect(table.rowEntries(txn, "R3")), contains(
+                assertThat(collect(table.rowEntries("R3")), contains(
                         new Entry<>("E", "8"),
                         new Entry<>("F", "9")
                 ));
@@ -91,19 +91,19 @@ public class LmdbTableTest extends TestBase {
             LmdbTable<String, String, String> table = env.createTable("test", STRING_CODEC, STRING_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
-                table.put(txn, "A", "Aa", "1");
-                table.put(txn, "A", "Ab", "2");
-                table.put(txn, "A", "Ac", "3");
-                table.put(txn, "AA", "a", "4");
-                table.put(txn, "AA", "b", "5");
-                table.put(txn, "AA", "c", "6");
+                table.put("A", "Aa", "1");
+                table.put("A", "Ab", "2");
+                table.put("A", "Ac", "3");
+                table.put("AA", "a", "4");
+                table.put("AA", "b", "5");
+                table.put("AA", "c", "6");
 
-                assertThat(collect(table.rowEntries(txn, "A")), contains(
+                assertThat(collect(table.rowEntries("A")), contains(
                         new Entry<>("Aa", "1"),
                         new Entry<>("Ab", "2"),
                         new Entry<>("Ac", "3")
                 ));
-                assertThat(collect(table.rowEntries(txn, "AA")), contains(
+                assertThat(collect(table.rowEntries("AA")), contains(
                         new Entry<>("a", "4"),
                         new Entry<>("b", "5"),
                         new Entry<>("c", "6")
@@ -118,11 +118,11 @@ public class LmdbTableTest extends TestBase {
             LmdbTable<String, String, String> table = env.createTable("test", STRING_CODEC, STRING_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
-                table.put(txn, "row1", "col1", "Hello");
-                table.put(txn, "row1", "col2", "World");
-                table.put(txn, "row1", "col2", "Alternative");
+                table.put("row1", "col1", "Hello");
+                table.put("row1", "col2", "World");
+                table.put("row1", "col2", "Alternative");
 
-                assertThat(collect(table.rowEntries(txn, "row1")), contains(
+                assertThat(collect(table.rowEntries("row1")), contains(
                         new Entry<>("col1", "Hello"),
                         new Entry<>("col2", "Alternative")
                 ));
@@ -140,11 +140,11 @@ public class LmdbTableTest extends TestBase {
             String colKey_208 = IntStream.range(0, 208).mapToObj(k -> "A").collect(Collectors.joining());
 
             try (Transaction txn = env.txnWrite()) {
-                multimap.put(txn, rowKey_300, colKey_207, "value");
-                assertThat(multimap.get(txn, rowKey_300, colKey_207), is("value"));
+                multimap.put(rowKey_300, colKey_207, "value");
+                assertThat(multimap.get(rowKey_300, colKey_207), is("value"));
 
                 thrown.expect(BufferOverflowException.class);
-                multimap.put(txn, rowKey_300, colKey_208, "value");
+                multimap.put(rowKey_300, colKey_208, "value");
             }
         }
     }

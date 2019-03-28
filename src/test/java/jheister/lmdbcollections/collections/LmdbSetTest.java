@@ -23,15 +23,15 @@ public class LmdbSetTest extends TestBase {
             LmdbSet<String> set = env.createSet("test", STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
-                set.add(txn, "Hello");
-                set.add(txn, "World");
-                set.add(txn, "I");
-                set.add(txn, "am");
-                set.add(txn, "a");
-                set.add(txn, "Set!");
+                set.add("Hello");
+                set.add("World");
+                set.add("I");
+                set.add("am");
+                set.add("a");
+                set.add("Set!");
 
                 List<String> values = new ArrayList<>();
-                set.forEach(txn, values::add);
+                set.forEach(values::add);
                 assertThat(values, contains(
                         "Hello",
                         "I",
@@ -50,17 +50,17 @@ public class LmdbSetTest extends TestBase {
             LmdbSet<String> set = env.createSet("test", STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
-                set.add(txn, "Hello");
-                set.add(txn, "World");
-                set.add(txn, "I");
+                set.add("Hello");
+                set.add("World");
+                set.add("I");
 
-                set.clear(txn);
-                set.add(txn, "am");
-                set.add(txn, "a");
-                set.add(txn, "Set!");
+                set.clear();
+                set.add("am");
+                set.add("a");
+                set.add("Set!");
 
                 List<String> values = new ArrayList<>();
-                set.forEach(txn, values::add);
+                set.forEach(values::add);
                 assertThat(values, contains(
                         "Set!",
                         "a",
@@ -76,12 +76,12 @@ public class LmdbSetTest extends TestBase {
             LmdbSet<String> set = env.createSet("test", STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
-                set.add(txn, "Hello");
-                set.add(txn, "World");
-                set.add(txn, "I");
+                set.add("Hello");
+                set.add("World");
+                set.add("I");
 
-                assertThat(set.contains(txn, "World"), is(true));
-                assertThat(set.contains(txn, "Set!"), is(false));
+                assertThat(set.contains("World"), is(true));
+                assertThat(set.contains("Set!"), is(false));
             }
         }
     }
@@ -94,13 +94,13 @@ public class LmdbSetTest extends TestBase {
             String maxValue = IntStream.range(0, 511).mapToObj(k -> "A").collect(Collectors.joining());
 
             try (Transaction txn = env.txnWrite()) {
-                set.add(txn, maxValue);
+                set.add(maxValue);
                 List<String> values = new ArrayList<>();
-                set.forEach(txn, values::add);
+                set.forEach(values::add);
                 assertThat(values, contains(maxValue));
 
                 thrown.expect(BufferOverflowException.class);
-                set.add(txn, maxValue + "A");
+                set.add(maxValue + "A");
             }
         }
     }

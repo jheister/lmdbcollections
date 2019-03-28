@@ -1,7 +1,7 @@
 package jheister.lmdbcollections.collections;
 
-import jheister.lmdbcollections.codec.Codec;
 import jheister.lmdbcollections.Transaction;
+import jheister.lmdbcollections.codec.Codec;
 import org.lmdbjava.CursorIterator;
 import org.lmdbjava.Dbi;
 
@@ -16,14 +16,17 @@ public class LmdbMap<K, V> {
     private final Dbi<ByteBuffer> db;
     private final Codec<K> keyCodec;
     private final Codec<V> valueCodec;
+    private final ThreadLocal<Transaction> threadLocalTransaction;
 
-    public LmdbMap(Dbi<ByteBuffer> db, Codec<K> keyCodec, Codec<V> valueCodec) {
+    public LmdbMap(Dbi<ByteBuffer> db, Codec<K> keyCodec, Codec<V> valueCodec, ThreadLocal<Transaction> threadLocalTransaction) {
         this.db = db;
         this.keyCodec = keyCodec;
         this.valueCodec = valueCodec;
+        this.threadLocalTransaction = threadLocalTransaction;
     }
 
-    public void put(Transaction txn, K key, V value) {
+    public void put(K key, V value) {
+        Transaction txn = localTransaction();
         fillKeyBuffer(txn.keyBuffer, key);
         txn.valueBuffer.clear();
         valueCodec.serialize(value, txn.valueBuffer);
@@ -31,7 +34,8 @@ public class LmdbMap<K, V> {
         db.put(txn.lmdbTxn, txn.keyBuffer, txn.valueBuffer);
     }
 
-    public V get(Transaction txn, K key) {
+    public V get(K key) {
+        Transaction txn = localTransaction();
         fillKeyBuffer(txn.keyBuffer, key);
         ByteBuffer valueBuffer = db.get(txn.lmdbTxn, txn.keyBuffer);
         if (valueBuffer == null) {
@@ -40,12 +44,14 @@ public class LmdbMap<K, V> {
         return valueCodec.deserialize(valueBuffer);
     }
 
-    public void remove(Transaction txn, K key) {
+    public void remove(K key) {
+        Transaction txn = localTransaction();
         fillKeyBuffer(txn.keyBuffer, key);
         db.delete(txn.lmdbTxn, txn.keyBuffer);
     }
 
-    public Stream<Entry<K, V>> entries(Transaction txn) {
+    public Stream<Entry<K, V>> entries() {
+        Transaction txn = localTransaction();
         CursorIterator<ByteBuffer> iterator = db.iterate(txn.lmdbTxn);
         return stream(spliteratorUnknownSize(iterator, Spliterator.ORDERED), false).map(e -> {
             return new Entry<K, V>(keyCodec.deserialize(e.key()), valueCodec.deserialize(e.val()));
@@ -58,4 +64,11 @@ public class LmdbMap<K, V> {
         keyBuffer.flip();
     }
 
+    private Transaction localTransaction() {
+        Transaction txn = threadLocalTransaction.get();
+        if (txn == null) {
+            throw new RuntimeException("Not in a transaction");
+        }
+        return txn;
+    }
 }
