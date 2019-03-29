@@ -44,6 +44,12 @@ public class LmdbMap<K, V> {
         return valueCodec.deserialize(valueBuffer);
     }
 
+    public boolean containsKey(K key) {
+        Transaction txn = localTransaction();
+        fillKeyBuffer(txn.keyBuffer, key);
+        return db.get(txn.lmdbTxn, txn.keyBuffer) != null;
+    }
+
     public void remove(K key) {
         Transaction txn = localTransaction();
         fillKeyBuffer(txn.keyBuffer, key);

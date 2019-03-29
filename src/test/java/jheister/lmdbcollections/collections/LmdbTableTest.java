@@ -148,4 +148,20 @@ public class LmdbTableTest extends TestBase {
             }
         }
     }
+
+    @Test public void
+    can_test_for_presence_of_row() {
+        try (LmdbStorageEnvironment env = createEnv()) {
+            LmdbTable<String, String, String> table = env.createTable("test", STRING_CODEC, STRING_CODEC, STRING_CODEC);
+
+            try (Transaction txn = env.txnWrite()) {
+                table.put("row1", "col1", "Hello");
+                table.put("row2", "col1", "Hi");
+
+                assertThat(table.containsRow("row1"), is(true));
+                assertThat(table.containsRow("row2"), is(true));
+                assertThat(table.containsRow("row3"), is(false));
+            }
+        }
+    }
 }

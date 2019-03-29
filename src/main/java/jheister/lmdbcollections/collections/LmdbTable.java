@@ -49,6 +49,11 @@ public class LmdbTable<R, C, V> {
         return codec.deserialize(valueBuffer);
     }
 
+    public boolean containsRow(R rowKey) {
+        //todo: optimize
+        return rowEntries(rowKey).iterator().hasNext();
+    }
+
     public void remove(R rowKey, C colKey) {
         Transaction txn = localTransaction();
         fillKeyBuffer(txn.keyBuffer, rowKey, colKey);

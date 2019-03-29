@@ -99,4 +99,21 @@ public class LmdbMapTest extends TestBase {
             }
         }
     }
+
+    @Test
+    public void
+    can_test_for_presence_of_key() {
+        try (LmdbStorageEnvironment env = createEnv()) {
+            LmdbMap<String, String> map = env.createMap("test", STRING_CODEC, STRING_CODEC);
+
+            try (Transaction txn = env.txnWrite()) {
+                map.put("k1", "Hello");
+                map.put("k2", "Hi");
+
+                assertThat(map.containsKey("k1"), is(true));
+                assertThat(map.containsKey("k2"), is(true));
+                assertThat(map.containsKey("other"), is(false));
+            }
+        }
+    }
 }
