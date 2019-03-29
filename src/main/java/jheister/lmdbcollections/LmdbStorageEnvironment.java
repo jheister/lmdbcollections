@@ -7,7 +7,6 @@ import jheister.lmdbcollections.collections.LmdbSetMultimap;
 import jheister.lmdbcollections.collections.LmdbTable;
 import org.lmdbjava.Dbi;
 import org.lmdbjava.Env;
-import org.lmdbjava.EnvFlags;
 import org.lmdbjava.Stat;
 import org.lmdbjava.Txn;
 
@@ -57,7 +56,7 @@ public class LmdbStorageEnvironment implements AutoCloseable {
         return new LmdbStorageEnvironment(Env.create()
                 .setMapSize(maxTotalSize)
                 .setMaxDbs(maxCollections)
-                .open(path, EnvFlags.MDB_WRITEMAP, EnvFlags.MDB_NOSYNC, EnvFlags.MDB_NOMETASYNC, EnvFlags.MDB_MAPASYNC));
+                .open(path));
     }
 
     //todo: work out how to cache transaction objects / their buffers - count should match max transactions
