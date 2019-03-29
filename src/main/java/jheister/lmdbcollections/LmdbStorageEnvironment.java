@@ -120,6 +120,22 @@ public class LmdbStorageEnvironment implements AutoCloseable {
             this.pageSize = pageSize;
         }
 
+        public long size() {
+            return leafSize() + branchSize() + overflowSize();
+        }
+
+        public long overflowSize() {
+            return overflowPages * pageSize;
+        }
+
+        public long leafSize() {
+            return leafPages * pageSize;
+        }
+
+        public long branchSize() {
+            return branchPages * pageSize;
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
