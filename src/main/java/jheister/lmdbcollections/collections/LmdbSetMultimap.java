@@ -19,7 +19,6 @@ public class LmdbSetMultimap<K, V> {
         table.remove(key, value);
     }
 
-    //todo: whilst cursors get collected when txn is finished, is it an issue in long running txn?
     public Stream<V> get(K key) {
         return table.rowEntries(key).map(e -> e.key);
     }

@@ -132,6 +132,4 @@ public class LmdbStorageEnvironmentTest extends TestBase {
             System.out.println("Size: " + stats.size() / 1024 / 1024);
         }
     }
-
-    //todo: look at using custom comparator + how it works
 }
