@@ -18,6 +18,7 @@ import java.util.stream.Stream;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
 import static org.lmdbjava.DbiFlags.MDB_CREATE;
+import static org.lmdbjava.DbiFlags.MDB_DUPSORT;
 
 public class LmdbStorageEnvironment implements AutoCloseable {
     private static final int LMDB_MAX_KEY = 511;
@@ -42,8 +43,8 @@ public class LmdbStorageEnvironment implements AutoCloseable {
         return new LmdbSet<T>(createMap(name, codec, Codec.EMPTY_CODEC));
     }
 
-    public <K, V> LmdbSetMultimap<K, V> createSetMultimap(String name, Codec<K> keyCodec, Codec<V> valueCodec) {
-        return new LmdbSetMultimap<>(createTable(name, keyCodec, valueCodec, Codec.EMPTY_CODEC));
+    public <K, V> LmdbSetMultimap<K, V> createSortedSetMultimap(String name, Codec<K> keyCodec, Codec<V> valueCodec) {
+        return new LmdbSetMultimap<>(env.openDbi(name, MDB_CREATE, MDB_DUPSORT), keyCodec, valueCodec, threadLocalTransaction);
     }
 
     @Override
