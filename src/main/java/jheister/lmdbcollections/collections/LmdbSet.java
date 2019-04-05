@@ -20,10 +20,7 @@ public class LmdbSet<T> {
 
     public void add(T value) {
         Transaction txn = localTransaction();
-        txn.keyBuffer.clear();
-        valueCodec.serialize(value, txn.keyBuffer);
-        txn.keyBuffer.flip();
-
+        txn.serializeKey(valueCodec, value);
         db.reserve(txn.lmdbTxn, txn.keyBuffer, 0);
     }
 

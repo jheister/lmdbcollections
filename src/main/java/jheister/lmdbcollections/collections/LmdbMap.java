@@ -27,16 +27,16 @@ public class LmdbMap<K, V> {
 
     public void put(K key, V value) {
         Transaction txn = localTransaction();
-        fillKeyBuffer(txn.keyBuffer, key);
-        txn.valueBuffer.clear();
-        valueCodec.serialize(value, txn.valueBuffer);
-        txn.valueBuffer.flip();
+
+        txn.serializeKey(keyCodec, key);
+        txn.serializeValue(valueCodec, value);
+
         db.put(txn.lmdbTxn, txn.keyBuffer, txn.valueBuffer);
     }
 
     public V get(K key) {
         Transaction txn = localTransaction();
-        fillKeyBuffer(txn.keyBuffer, key);
+        txn.serializeKey(keyCodec, key);
         ByteBuffer valueBuffer = db.get(txn.lmdbTxn, txn.keyBuffer);
         if (valueBuffer == null) {
             return null;
@@ -46,13 +46,13 @@ public class LmdbMap<K, V> {
 
     public boolean containsKey(K key) {
         Transaction txn = localTransaction();
-        fillKeyBuffer(txn.keyBuffer, key);
+        txn.serializeKey(keyCodec, key);
         return db.get(txn.lmdbTxn, txn.keyBuffer) != null;
     }
 
     public void remove(K key) {
         Transaction txn = localTransaction();
-        fillKeyBuffer(txn.keyBuffer, key);
+        txn.serializeKey(keyCodec, key);
         db.delete(txn.lmdbTxn, txn.keyBuffer);
     }
 
@@ -62,12 +62,6 @@ public class LmdbMap<K, V> {
         return stream(spliteratorUnknownSize(iterator, Spliterator.ORDERED), false).map(e -> {
             return new Entry<K, V>(keyCodec.deserialize(e.key()), valueCodec.deserialize(e.val()));
         }).onClose(iterator::close);
-    }
-
-    private void fillKeyBuffer(ByteBuffer keyBuffer, K key) {
-        keyBuffer.clear();
-        keyCodec.serialize(key, keyBuffer);
-        keyBuffer.flip();
     }
 
     private Transaction localTransaction() {

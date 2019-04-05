@@ -1,5 +1,6 @@
 package jheister.lmdbcollections;
 
+import jheister.lmdbcollections.codec.Codec;
 import org.lmdbjava.Txn;
 
 import java.nio.ByteBuffer;
@@ -29,5 +30,17 @@ public class Transaction implements AutoCloseable {
 
     public void commit() {
         lmdbTxn.commit();
+    }
+
+    public <V> void serializeValue(Codec<V> valueCodec, V value) {
+        valueBuffer.clear();
+        valueCodec.serialize(value, valueBuffer);
+        valueBuffer.flip();
+    }
+
+    public <K> void serializeKey(Codec<K> keyCodec, K key) {
+        keyBuffer.clear();
+        keyCodec.serialize(key, keyBuffer);
+        keyBuffer.flip();
     }
 }

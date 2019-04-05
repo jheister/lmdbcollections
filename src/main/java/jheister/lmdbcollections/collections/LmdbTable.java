@@ -32,9 +32,8 @@ public class LmdbTable<R, C, V> {
     public void put(R rowKey, C colKey, V value) {
         Transaction txn = localTransaction();
         fillKeyBuffer(txn.keyBuffer, rowKey, colKey);
-        txn.valueBuffer.clear();
-        codec.serialize(value, txn.valueBuffer);
-        txn.valueBuffer.flip();
+
+        txn.serializeValue(codec, value);
         db.put(txn.lmdbTxn, txn.keyBuffer, txn.valueBuffer);
     }
 
@@ -98,6 +97,7 @@ public class LmdbTable<R, C, V> {
                 }).onClose(iterator::close);
     }
 
+    //todo: express this as a composite codec
     private void fillKeyBuffer(ByteBuffer keyBuffer, R rowKey, C colKey) {
         keyBuffer.clear();
 
