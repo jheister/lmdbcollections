@@ -39,7 +39,7 @@ public class LmdbStorageEnvironment implements AutoCloseable {
     }
 
     public <T> LmdbSet<T> createSet(String name, Codec<T> codec) {
-        return new LmdbSet<T>(env.openDbi(name, MDB_CREATE), codec, threadLocalTransaction);
+        return new LmdbSet<T>(createMap(name, codec, Codec.EMPTY_CODEC));
     }
 
     public <K, V> LmdbSetMultimap<K, V> createSetMultimap(String name, Codec<K> keyCodec, Codec<V> valueCodec) {

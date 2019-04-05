@@ -116,4 +116,20 @@ public class LmdbMapTest extends TestBase {
             }
         }
     }
+
+    @Test public void
+    can_clear_entire_map() {
+        try (LmdbStorageEnvironment env = createEnv()) {
+            LmdbMap<String, String> map = env.createMap("test", STRING_CODEC, STRING_CODEC);
+
+            try (Transaction txn = env.txnWrite()) {
+                map.put("key1", "Hello");
+                map.put("key2", "World");
+
+                map.clear();
+
+                assertThat(map.entries().count(), is(0L));
+            }
+        }
+    }
 }

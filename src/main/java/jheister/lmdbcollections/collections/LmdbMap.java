@@ -57,6 +57,11 @@ public class LmdbMap<K, V> {
         db.delete(txn.lmdbTxn, txn.keyBuffer);
     }
 
+    public void clear() {
+        Transaction txn = localTxn.get();;
+        db.drop(txn.lmdbTxn);
+    }
+
     public Stream<Entry<K, V>> entries() {
         Transaction txn = localTxn.get();;
         CursorIterator<ByteBuffer> iterator = db.iterate(txn.lmdbTxn);
