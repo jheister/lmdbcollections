@@ -31,19 +31,19 @@ public class LmdbStorageEnvironment implements AutoCloseable {
         this.env = env;
     }
 
-    public <R, C, V> LmdbTable<R, C, V> createTable(String name, Codec<R> rowKeyCodec, Codec<C> colKeyCodec, Codec<V> valueCodec) {
+    public <R, C, V> LmdbTable<R, C, V> table(String name, Codec<R> rowKeyCodec, Codec<C> colKeyCodec, Codec<V> valueCodec) {
         return new LmdbTable<>(env.openDbi(name, MDB_CREATE), rowKeyCodec, colKeyCodec, valueCodec, threadLocalTransaction);
     }
 
-    public <K, V> LmdbMap<K, V> createMap(String name, Codec<K> keyCodec, Codec<V> valueCodec) {
+    public <K, V> LmdbMap<K, V> map(String name, Codec<K> keyCodec, Codec<V> valueCodec) {
         return new LmdbMap<>(env.openDbi(name, MDB_CREATE), keyCodec, valueCodec, threadLocalTransaction);
     }
 
-    public <T> LmdbSet<T> createSet(String name, Codec<T> codec) {
-        return new LmdbSet<T>(createMap(name, codec, Codec.EMPTY_CODEC));
+    public <T> LmdbSet<T> set(String name, Codec<T> codec) {
+        return new LmdbSet<T>(map(name, codec, Codec.EMPTY_CODEC));
     }
 
-    public <K, V> LmdbSetMultimap<K, V> createSortedSetMultimap(String name, Codec<K> keyCodec, Codec<V> valueCodec) {
+    public <K, V> LmdbSetMultimap<K, V> sortedSetMultimap(String name, Codec<K> keyCodec, Codec<V> valueCodec) {
         return new LmdbSetMultimap<>(env.openDbi(name, MDB_CREATE, MDB_DUPSORT), keyCodec, valueCodec, threadLocalTransaction);
     }
 

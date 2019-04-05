@@ -20,7 +20,7 @@ public class LmdbSetTest extends TestBase {
     @Test public void
     can_add_elements() {
         try (LmdbStorageEnvironment env = createEnv()) {
-            LmdbSet<String> set = env.createSet("test", STRING_CODEC);
+            LmdbSet<String> set = env.set("test", STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
                 set.add("Hello");
@@ -47,7 +47,7 @@ public class LmdbSetTest extends TestBase {
     @Test public void
     can_clear_all_values() {
         try (LmdbStorageEnvironment env = createEnv()) {
-            LmdbSet<String> set = env.createSet("test", STRING_CODEC);
+            LmdbSet<String> set = env.set("test", STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
                 set.add("Hello");
@@ -73,7 +73,7 @@ public class LmdbSetTest extends TestBase {
     @Test public void
     can_check_for_presence_of_value() {
         try (LmdbStorageEnvironment env = createEnv()) {
-            LmdbSet<String> set = env.createSet("test", STRING_CODEC);
+            LmdbSet<String> set = env.set("test", STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
                 set.add("Hello");
@@ -89,7 +89,7 @@ public class LmdbSetTest extends TestBase {
     @Test public void
     when_key_is_larger_than_511B_fails() {
         try (LmdbStorageEnvironment env = createEnv()) {
-            LmdbSet<String> set = env.createSet("test", STRING_CODEC);
+            LmdbSet<String> set = env.set("test", STRING_CODEC);
 
             String maxValue = IntStream.range(0, 511).mapToObj(k -> "A").collect(Collectors.joining());
 

@@ -17,7 +17,7 @@ public class LmdbSetMultimapTest extends TestBase {
     @Test public void
     can_add_values_to_keys() {
         try (LmdbStorageEnvironment env = createEnv()) {
-            LmdbSetMultimap<String, String> map = env.createSortedSetMultimap("test", STRING_CODEC, STRING_CODEC);
+            LmdbSetMultimap<String, String> map = env.sortedSetMultimap("test", STRING_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
                 map.put("k1", "Hello");
@@ -34,7 +34,7 @@ public class LmdbSetMultimapTest extends TestBase {
     @Test public void
     can_remove_values() {
         try (LmdbStorageEnvironment env = createEnv()) {
-            LmdbSetMultimap<String, String> map = env.createSortedSetMultimap("test", STRING_CODEC, STRING_CODEC);
+            LmdbSetMultimap<String, String> map = env.sortedSetMultimap("test", STRING_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
                 map.put("k1", "Hello");
@@ -54,7 +54,7 @@ public class LmdbSetMultimapTest extends TestBase {
     @Test public void
     does_not_contain_duplicates() {
         try (LmdbStorageEnvironment env = createEnv()) {
-            LmdbSetMultimap<String, String> map = env.createSortedSetMultimap("test", STRING_CODEC, STRING_CODEC);
+            LmdbSetMultimap<String, String> map = env.sortedSetMultimap("test", STRING_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
                 map.put("k1", "Hello");
@@ -69,7 +69,7 @@ public class LmdbSetMultimapTest extends TestBase {
     @Test public void
     get_on_missing_key_is_empty_stream() {
         try (LmdbStorageEnvironment env = createEnv()) {
-            LmdbSetMultimap<String, String> map = env.createSortedSetMultimap("test", STRING_CODEC, STRING_CODEC);
+            LmdbSetMultimap<String, String> map = env.sortedSetMultimap("test", STRING_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
                 map.put("k1", "Hello");
@@ -82,7 +82,7 @@ public class LmdbSetMultimapTest extends TestBase {
     @Test public void
     key_and_value_can_be_larger_than_lmdb_key_limit() {
         try (LmdbStorageEnvironment env = createEnv()) {
-            LmdbSetMultimap<String, String> multimap = env.createSortedSetMultimap("test", STRING_CODEC, STRING_CODEC);
+            LmdbSetMultimap<String, String> multimap = env.sortedSetMultimap("test", STRING_CODEC, STRING_CODEC);
 
             String key_300 = IntStream.range(0, 300).mapToObj(k -> "A").collect(Collectors.joining());
             String value_208 = IntStream.range(0, 208).mapToObj(k -> "A").collect(Collectors.joining());

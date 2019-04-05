@@ -28,7 +28,7 @@ public class LmdbStorageEnvironmentTest extends TestBase {
         thrown.expect(Env.MapFullException.class);
 
         try (LmdbStorageEnvironment env = createEnv(1024 * 1024)) {
-            LmdbSet<String> set = env.createSet("test", STRING_CODEC);
+            LmdbSet<String> set = env.set("test", STRING_CODEC);
 
             int uuidStringLength = UUID.randomUUID().toString().getBytes(UTF_8).length;
             int requiredValues = (1024 * 1024) / uuidStringLength;
@@ -46,7 +46,7 @@ public class LmdbStorageEnvironmentTest extends TestBase {
         ExecutorService anotherThread = Executors.newFixedThreadPool(1);
 
         try (LmdbStorageEnvironment env = createEnv(1024 * 1024)) {
-            LmdbSet<String> set = env.createSet("test", STRING_CODEC);
+            LmdbSet<String> set = env.set("test", STRING_CODEC);
 
             Transaction writeTxn = env.txnWrite();
             anotherThread.submit(env::txnRead).get();
@@ -69,8 +69,8 @@ public class LmdbStorageEnvironmentTest extends TestBase {
     @Test public void
     transactions_apply_across_entire_env() {
         try (LmdbStorageEnvironment env = createEnv(1024 * 1024)) {
-            LmdbSet<String> set1 = env.createSet("test1", STRING_CODEC);
-            LmdbSet<String> set2 = env.createSet("test2", STRING_CODEC);
+            LmdbSet<String> set1 = env.set("test1", STRING_CODEC);
+            LmdbSet<String> set2 = env.set("test2", STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
                 set1.add("A");
@@ -87,8 +87,8 @@ public class LmdbStorageEnvironmentTest extends TestBase {
     @Test public void
     can_get_stats_for_the_entire_env() {
         try (LmdbStorageEnvironment env = createEnv(1024 * 1024)) {
-            LmdbSet<String> set1 = env.createSet("test1", STRING_CODEC);
-            LmdbSet<String> set2 = env.createSet("test2", STRING_CODEC);
+            LmdbSet<String> set1 = env.set("test1", STRING_CODEC);
+            LmdbSet<String> set2 = env.set("test2", STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
                 set1.add("A");
@@ -112,7 +112,7 @@ public class LmdbStorageEnvironmentTest extends TestBase {
 
 //            Collections.shuffle(keys);
 
-            LmdbMap<Integer, String> map = env.createMap("test1", INTEGER_CODEC, STRING_CODEC);
+            LmdbMap<Integer, String> map = env.map("test1", INTEGER_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
                 keys.forEach(key -> {

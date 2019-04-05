@@ -19,7 +19,7 @@ public class LmdbTableTest extends TestBase {
     @Test public void
     can_put_and_get_values() {
         try (LmdbStorageEnvironment env = createEnv()) {
-            LmdbTable<String, String, String> table = env.createTable("test", STRING_CODEC, STRING_CODEC, STRING_CODEC);
+            LmdbTable<String, String, String> table = env.table("test", STRING_CODEC, STRING_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
                 table.put("row1", "col1", "Hello");
@@ -38,7 +38,7 @@ public class LmdbTableTest extends TestBase {
     @Test public void
     after_key_is_removed_it_returns_null() {
         try (LmdbStorageEnvironment env = createEnv()) {
-            LmdbTable<String, String, String> table = env.createTable("test", STRING_CODEC, STRING_CODEC, STRING_CODEC);
+            LmdbTable<String, String, String> table = env.table("test", STRING_CODEC, STRING_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
                 table.put("row1", "col1", "Hello");
@@ -59,7 +59,7 @@ public class LmdbTableTest extends TestBase {
     @Test public void
     lists_all_entries_in_a_row_in_order() {
         try (LmdbStorageEnvironment env = createEnv()) {
-            LmdbTable<String, String, String> table = env.createTable("test", STRING_CODEC, STRING_CODEC, STRING_CODEC);
+            LmdbTable<String, String, String> table = env.table("test", STRING_CODEC, STRING_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
                 table.put("R1", "B", "2");
@@ -88,7 +88,7 @@ public class LmdbTableTest extends TestBase {
     @Test public void
     when_row_and_col_keys_combine_to_the_same_value_correct_entries_are_returned() {
         try (LmdbStorageEnvironment env = createEnv()) {
-            LmdbTable<String, String, String> table = env.createTable("test", STRING_CODEC, STRING_CODEC, STRING_CODEC);
+            LmdbTable<String, String, String> table = env.table("test", STRING_CODEC, STRING_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
                 table.put("A", "Aa", "1");
@@ -115,7 +115,7 @@ public class LmdbTableTest extends TestBase {
     @Test public void
     does_not_store_duplicates_on_keys() {
         try (LmdbStorageEnvironment env = createEnv()) {
-            LmdbTable<String, String, String> table = env.createTable("test", STRING_CODEC, STRING_CODEC, STRING_CODEC);
+            LmdbTable<String, String, String> table = env.table("test", STRING_CODEC, STRING_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
                 table.put("row1", "col1", "Hello");
@@ -133,7 +133,7 @@ public class LmdbTableTest extends TestBase {
     @Test public void
     row_and_col_key_together_have_to_be_under_507B() {
         try (LmdbStorageEnvironment env = createEnv()) {
-            LmdbTable<String, String, String> multimap = env.createTable("test", STRING_CODEC, STRING_CODEC, STRING_CODEC);
+            LmdbTable<String, String, String> multimap = env.table("test", STRING_CODEC, STRING_CODEC, STRING_CODEC);
 
             String rowKey_300 = IntStream.range(0, 300).mapToObj(k -> "A").collect(Collectors.joining());
             String colKey_207 = IntStream.range(0, 207).mapToObj(k -> "A").collect(Collectors.joining());
@@ -152,7 +152,7 @@ public class LmdbTableTest extends TestBase {
     @Test public void
     can_test_for_presence_of_row() {
         try (LmdbStorageEnvironment env = createEnv()) {
-            LmdbTable<String, String, String> table = env.createTable("test", STRING_CODEC, STRING_CODEC, STRING_CODEC);
+            LmdbTable<String, String, String> table = env.table("test", STRING_CODEC, STRING_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
                 table.put("row1", "col1", "Hello");

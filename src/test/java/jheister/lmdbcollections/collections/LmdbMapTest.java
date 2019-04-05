@@ -17,7 +17,7 @@ public class LmdbMapTest extends TestBase {
     public void
     can_put_and_get_values() {
         try (LmdbStorageEnvironment env = createEnv()) {
-            LmdbMap<String, String> map = env.createMap("test", STRING_CODEC, STRING_CODEC);
+            LmdbMap<String, String> map = env.map("test", STRING_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
                 map.put("k1", "Hello");
@@ -32,7 +32,7 @@ public class LmdbMapTest extends TestBase {
     @Test public void
     after_key_is_removed_it_returns_null() {
         try (LmdbStorageEnvironment env = createEnv()) {
-            LmdbMap<String, String> map = env.createMap("test", STRING_CODEC, STRING_CODEC);
+            LmdbMap<String, String> map = env.map("test", STRING_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
                 map.put("key1", "Hello");
@@ -49,7 +49,7 @@ public class LmdbMapTest extends TestBase {
     @Test public void
     entries_are_listed_in_order() {
         try (LmdbStorageEnvironment env = createEnv()) {
-            LmdbMap<String, String> map = env.createMap("test", STRING_CODEC, STRING_CODEC);
+            LmdbMap<String, String> map = env.map("test", STRING_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
                 map.put("A", "Hello");
@@ -68,7 +68,7 @@ public class LmdbMapTest extends TestBase {
     @Test public void
     does_not_store_duplicates_on_keys() {
         try (LmdbStorageEnvironment env = createEnv()) {
-            LmdbMap<String, String> map = env.createMap("test", STRING_CODEC, STRING_CODEC);
+            LmdbMap<String, String> map = env.map("test", STRING_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
                 map.put("key1", "Hello");
@@ -84,7 +84,7 @@ public class LmdbMapTest extends TestBase {
     @Test public void
     int_map_is_sorted_on_byte_representation_of_keys() {
         try (LmdbStorageEnvironment env = createEnv()) {
-            LmdbMap<Integer, String> map = env.createMap("test", INTEGER_CODEC, STRING_CODEC);
+            LmdbMap<Integer, String> map = env.map("test", INTEGER_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
                 map.put(6, "Hello");
@@ -104,7 +104,7 @@ public class LmdbMapTest extends TestBase {
     public void
     can_test_for_presence_of_key() {
         try (LmdbStorageEnvironment env = createEnv()) {
-            LmdbMap<String, String> map = env.createMap("test", STRING_CODEC, STRING_CODEC);
+            LmdbMap<String, String> map = env.map("test", STRING_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
                 map.put("k1", "Hello");
@@ -120,7 +120,7 @@ public class LmdbMapTest extends TestBase {
     @Test public void
     can_clear_entire_map() {
         try (LmdbStorageEnvironment env = createEnv()) {
-            LmdbMap<String, String> map = env.createMap("test", STRING_CODEC, STRING_CODEC);
+            LmdbMap<String, String> map = env.map("test", STRING_CODEC, STRING_CODEC);
 
             try (Transaction txn = env.txnWrite()) {
                 map.put("key1", "Hello");
