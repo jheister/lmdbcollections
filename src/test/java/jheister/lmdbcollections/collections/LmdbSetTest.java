@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static jheister.lmdbcollections.codec.Codec.INTEGER_CODEC;
 import static jheister.lmdbcollections.codec.Codec.STRING_CODEC;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -101,6 +102,25 @@ public class LmdbSetTest extends TestBase {
 
                 thrown.expect(BufferOverflowException.class);
                 set.add(maxValue + "A");
+            }
+        }
+    }
+
+    @Test public void
+    values_are_ordered() {
+        try (LmdbStorageEnvironment env = createEnv()) {
+            LmdbSet<Integer> set = env.set("test", INTEGER_CODEC);
+
+            try (Transaction txn = env.txnWrite()) {
+                set.add(1);
+                set.add(4);
+                set.add(3);
+                set.add(9);
+                set.add(-9);
+
+                List<Integer> values = new ArrayList<>();
+                set.forEach(values::add);
+                assertThat(values, contains(-9, 1, 3, 4, 9));
             }
         }
     }
