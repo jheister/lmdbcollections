@@ -1,6 +1,7 @@
 package jheister.lmdbcollections.codec;
 
 import java.nio.ByteBuffer;
+import java.util.Comparator;
 
 public interface Codec<T> {
     Codec<String> STRING_CODEC = new StringCodec();
@@ -26,4 +27,7 @@ public interface Codec<T> {
 
     void serialize(T value, ByteBuffer target);
 
+    default Comparator<ByteBuffer> comparator() {
+        return null;
+    }
 }

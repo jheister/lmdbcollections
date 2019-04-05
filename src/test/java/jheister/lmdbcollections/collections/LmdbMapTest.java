@@ -82,7 +82,7 @@ public class LmdbMapTest extends TestBase {
     }
 
     @Test public void
-    int_map_is_sorted_on_byte_representation_of_keys() {
+    uses_povided_comparator_when_present() {
         try (LmdbStorageEnvironment env = createEnv()) {
             LmdbMap<Integer, String> map = env.map("test", INTEGER_CODEC, STRING_CODEC);
 
@@ -92,9 +92,9 @@ public class LmdbMapTest extends TestBase {
                 map.put(-1, "negative");
 
                 assertThat(collect(map.entries()), contains(
+                        new Entry<>(-1, "negative"),
                         new Entry<>(3, "Alternative"),
-                        new Entry<>(6, "Hello"),
-                        new Entry<>(-1, "negative")
+                        new Entry<>(6, "Hello")
                 ));
             }
         }
