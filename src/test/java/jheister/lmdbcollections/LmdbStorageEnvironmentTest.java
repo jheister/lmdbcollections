@@ -1,6 +1,5 @@
 package jheister.lmdbcollections;
 
-import jheister.lmdbcollections.LmdbStorageEnvironment.Stats;
 import jheister.lmdbcollections.collections.LmdbMap;
 import jheister.lmdbcollections.collections.LmdbSet;
 import org.junit.Ignore;

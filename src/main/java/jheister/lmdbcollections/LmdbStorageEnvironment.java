@@ -13,7 +13,6 @@ import org.lmdbjava.Txn;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -25,7 +24,7 @@ public class LmdbStorageEnvironment implements AutoCloseable {
     private static final int MAX_VALUE_SIZE = 4096 * 10;
 
     private final Env<ByteBuffer> env;
-    private final ThreadLocal<Transaction> threadLocalTransaction = new ThreadLocal<>();
+    private final ThreadLocalTransaction threadLocalTransaction = new ThreadLocalTransaction();
 
     public LmdbStorageEnvironment(Env<ByteBuffer> env) {
         this.env = env;
@@ -94,77 +93,19 @@ public class LmdbStorageEnvironment implements AutoCloseable {
         return new Stats(name, stat.branchPages, stat.depth, stat.entries, stat.leafPages, stat.overflowPages, stat.pageSize);
     }
 
-    public static class Stats {
-        public final String name;
-        public final long branchPages;
-        public final int depth;
-        public final long entries;
-        public final long leafPages;
-        public final long overflowPages;
-        public final int pageSize;
+    public static class ThreadLocalTransaction {
+        private final ThreadLocal<Transaction> threadLocalTransaction = new ThreadLocal<>();
 
-        public Stats(String name,
-                     long branchPages,
-                     int depth,
-                     long entries,
-                     long leafPages,
-                     long overflowPages,
-                     int pageSize) {
-            this.name = name;
-            this.branchPages = branchPages;
-            this.depth = depth;
-            this.entries = entries;
-            this.leafPages = leafPages;
-            this.overflowPages = overflowPages;
-            this.pageSize = pageSize;
+        public Transaction get() {
+            Transaction txn = threadLocalTransaction.get();
+            if (txn == null) {
+                throw new RuntimeException("Not in a transaction");
+            }
+            return txn;
         }
 
-        public long size() {
-            return leafSize() + branchSize() + overflowSize();
-        }
-
-        public long overflowSize() {
-            return overflowPages * pageSize;
-        }
-
-        public long leafSize() {
-            return leafPages * pageSize;
-        }
-
-        public long branchSize() {
-            return branchPages * pageSize;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            Stats stats = (Stats) o;
-            return branchPages == stats.branchPages &&
-                    depth == stats.depth &&
-                    entries == stats.entries &&
-                    leafPages == stats.leafPages &&
-                    overflowPages == stats.overflowPages &&
-                    pageSize == stats.pageSize &&
-                    Objects.equals(name, stats.name);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(name, branchPages, depth, entries, leafPages, overflowPages, pageSize);
-        }
-
-        @Override
-        public String toString() {
-            return "Stats{" +
-                    "name='" + name + '\'' +
-                    ", branchPages=" + branchPages +
-                    ", depth=" + depth +
-                    ", entries=" + entries +
-                    ", leafPages=" + leafPages +
-                    ", overflowPages=" + overflowPages +
-                    ", pageSize=" + pageSize +
-                    '}';
+        public void set(Transaction txn) {
+            threadLocalTransaction.set(txn);
         }
     }
 }
