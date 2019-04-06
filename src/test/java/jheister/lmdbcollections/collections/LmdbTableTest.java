@@ -239,6 +239,38 @@ public class LmdbTableTest extends TestBase {
         }
     }
 
+    @Test public void
+    can_use_comparator_of_deserialized_type() {
+        try (LmdbStorageEnvironment env = createEnv()) {
+            LmdbTable<String, String, String> table = env.table("test",
+                    STRING_CODEC.comparedUsing(String::compareToIgnoreCase),
+                    STRING_CODEC.comparedUsing(String::compareTo),
+                    STRING_CODEC);
+
+            try (Transaction txn = env.txnWrite()) {
+                table.put("a", "1", "");
+                table.put("b", "2", "");
+                table.put("c", "3", "");
+                table.put("A", "4", "");
+                table.put("B", "5", "");
+                table.put("C", "x", "");
+                table.put("C", "y", "");
+                table.put("C", "Z", "");
+
+                assertThat(collect(table.entries()), contains(
+                        new TableEntry<>("a", "1", ""),
+                        new TableEntry<>("A", "4", ""),
+                        new TableEntry<>("b", "2", ""),
+                        new TableEntry<>("B", "5", ""),
+                        new TableEntry<>("c", "3", ""),
+                        new TableEntry<>("C", "Z", ""),
+                        new TableEntry<>("C", "x", ""),
+                        new TableEntry<>("C", "y", "")
+                ));
+            }
+        }
+    }
+
     //todo: test it works when r/c have variable lenth + overlap
     //todo: test what happens with empty colKey and comparator now
     //todo: test being able to reverse the ordering of r or cs

@@ -49,4 +49,27 @@ public interface Codec<T> {
             }
         };
     }
+
+    default Codec<T> comparedUsing(Comparator<T> comparator) {
+        return new Codec<T>() {
+            @Override
+            public T deserialize(ByteBuffer buffer) {
+                return Codec.this.deserialize(buffer);
+            }
+
+            @Override
+            public void serialize(T value, ByteBuffer target) {
+                Codec.this.serialize(value, target);
+            }
+
+            @Override
+            public Comparator<ByteBuffer> comparator() {
+                return (o1, o2) -> {
+                    T deserializedO1 = Codec.this.deserialize(o1);
+                    T deserializedO2 = Codec.this.deserialize(o2);
+                    return comparator.compare(deserializedO1, deserializedO2);
+                };
+            }
+        };
+    }
 }
