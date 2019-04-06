@@ -386,6 +386,4 @@ public class LmdbTableTest extends TestBase {
     }
 
     //todo: test what happens with empty colKey and comparator now
-
-    //todo: deomonstrate that deserializing row/col key is always required due to comparator stuff
 }
