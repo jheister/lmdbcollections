@@ -5,6 +5,7 @@ import jheister.lmdbcollections.Transaction;
 import jheister.lmdbcollections.codec.Codec;
 import org.lmdbjava.CursorIterator;
 import org.lmdbjava.Dbi;
+import org.lmdbjava.Env;
 import org.lmdbjava.KeyRange;
 
 import java.nio.ByteBuffer;
@@ -15,6 +16,7 @@ import java.util.stream.Stream;
 
 import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.StreamSupport.stream;
+import static org.lmdbjava.DbiFlags.MDB_CREATE;
 
 public class LmdbTable<R, C, V> {
     private final Dbi<ByteBuffer> db;
@@ -128,6 +130,49 @@ public class LmdbTable<R, C, V> {
         rowKeyCodec.serialize(rowKey, keyBuffer);
         int rowKeySize = keyBuffer.position() - 4;
         keyBuffer.putInt(0, rowKeySize);
+    }
+
+    public static <R, C, V> LmdbTable<R, C, V> create(Env<ByteBuffer> env,
+                                                      String name,
+                                                      ThreadLocalTransaction threadLocalTransaction,
+                                                      Codec<R> rowCodec,
+                                                      Codec<C> colCodec,
+                                                      Codec<V> valCodec) {
+        return new LmdbTable<>(env.openDbi(name, constructComparator(rowCodec.comparator(), colCodec.comparator()), MDB_CREATE), rowCodec, colCodec, valCodec, threadLocalTransaction);
+    }
+
+    private static Comparator<ByteBuffer> constructComparator(Comparator<ByteBuffer> providedRowComparator, Comparator<ByteBuffer> providedColComparator) {
+        if (providedRowComparator == null && providedColComparator == null) {
+            return null;
+        } else {
+            Comparator<ByteBuffer> rowComparator = providedRowComparator == null ? Comparator.naturalOrder() : providedRowComparator;
+            Comparator<ByteBuffer> colComparator = providedColComparator == null ? Comparator.naturalOrder() : providedColComparator;
+
+            return (o1, o2) -> {
+                int o1Len = o1.remaining();
+                int o2Len = o2.remaining();
+                int o1RowKeyLen = o1.getInt();
+                int o2RowKeyLen = o2.getInt();
+
+                o1.limit(o1RowKeyLen + 4);
+                o2.limit(o2RowKeyLen + 4);
+
+                int rowKeyCompare = rowComparator.compare(o1, o2);
+
+                o1.rewind().limit(o1Len).position(o1RowKeyLen + 4);
+                o2.rewind().limit(o2Len).position(o2RowKeyLen + 4);
+
+                if (rowKeyCompare != 0) {
+                    return rowKeyCompare;
+                }
+
+                if (o1.remaining() > 0 && o2.remaining() > 0) {
+                    return colComparator.compare(o1, o2);
+                } else {
+                    return o1Len - o2Len;
+                }
+            };
+        }
     }
 
     public static class TableEntry<R, C, V> {
