@@ -35,32 +35,41 @@ public class LmdbStorageEnvironment implements AutoCloseable {
     //todo: make it work when only row or col have a comparator
     //todo: speed comparison with / without comparator - how much does the callback to java cost?
     public <R, C, V> LmdbTable<R, C, V> table(String name, Codec<R> rowKeyCodec, Codec<C> colKeyCodec, Codec<V> valueCodec) {
-        Comparator<ByteBuffer> comparator = (o1, o2) -> {
-            int o1Len = o1.remaining();
-            int o2Len = o2.remaining();
-            int o1RowKeyLen = o1.getInt();
-            int o2RowKeyLen = o2.getInt();
+        return new LmdbTable<>(env.openDbi(name, constructComparator(rowKeyCodec.comparator(), colKeyCodec.comparator()), MDB_CREATE), rowKeyCodec, colKeyCodec, valueCodec, threadLocalTransaction);
+    }
 
-            o1.limit(o1RowKeyLen + 4);
-            o2.limit(o2RowKeyLen + 4);
+    private static Comparator<ByteBuffer> constructComparator(Comparator<ByteBuffer> providedRowComparator, Comparator<ByteBuffer> providedColComparator) {
+        if (providedRowComparator == null && providedColComparator == null) {
+            return null;
+        } else {
+            Comparator<ByteBuffer> rowComparator = providedRowComparator == null ? Comparator.naturalOrder() : providedRowComparator;
+            Comparator<ByteBuffer> colComparator = providedColComparator == null ? Comparator.naturalOrder() : providedColComparator;
 
-            int rowKeyCompare = rowKeyCodec.comparator().compare(o1, o2);
+            return (o1, o2) -> {
+                int o1Len = o1.remaining();
+                int o2Len = o2.remaining();
+                int o1RowKeyLen = o1.getInt();
+                int o2RowKeyLen = o2.getInt();
 
-            o1.rewind().limit(o1Len).position(o1RowKeyLen + 4);
-            o2.rewind().limit(o2Len).position(o2RowKeyLen + 4);
+                o1.limit(o1RowKeyLen + 4);
+                o2.limit(o2RowKeyLen + 4);
 
-            if (rowKeyCompare != 0) {
-                return rowKeyCompare;
-            }
+                int rowKeyCompare = rowComparator.compare(o1, o2);
 
-            if (o1.remaining() > 0 && o2.remaining() > 0) {
-                return colKeyCodec.comparator().compare(o1, o2);
-            } else {
-                return o1Len - o2Len;
-            }
-        };
+                o1.rewind().limit(o1Len).position(o1RowKeyLen + 4);
+                o2.rewind().limit(o2Len).position(o2RowKeyLen + 4);
 
-        return new LmdbTable<>(env.openDbi(name, rowKeyCodec.comparator() != null && colKeyCodec.comparator() != null ? comparator : null, MDB_CREATE), rowKeyCodec, colKeyCodec, valueCodec, threadLocalTransaction);
+                if (rowKeyCompare != 0) {
+                    return rowKeyCompare;
+                }
+
+                if (o1.remaining() > 0 && o2.remaining() > 0) {
+                    return colComparator.compare(o1, o2);
+                } else {
+                    return o1Len - o2Len;
+                }
+            };
+        }
     }
 
     public <K, V> LmdbMap<K, V> map(String name, Codec<K> keyCodec, Codec<V> valueCodec) {

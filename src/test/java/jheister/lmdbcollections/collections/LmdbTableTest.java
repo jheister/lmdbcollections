@@ -301,5 +301,59 @@ public class LmdbTableTest extends TestBase {
         }
     }
 
+    @Test public void
+    uses_comparator_on_only_row() {
+        try (LmdbStorageEnvironment env = createEnv()) {
+            LmdbTable<String, String, String> table = env.table("test",
+                    STRING_CODEC.comparedUsing(String::compareToIgnoreCase),
+                    STRING_CODEC,
+                    STRING_CODEC);
+
+            try (Transaction txn = env.txnWrite()) {
+                table.put("A", "C", "");
+                table.put("a", "D", "");
+                table.put("A", "a", "");
+                table.put("A", "b", "");
+
+                assertThat(collect(table.entries()), contains(
+                        new TableEntry<>("A", "C", ""),
+                        new TableEntry<>("a", "D", ""),
+                        new TableEntry<>("A", "a", ""),
+                        new TableEntry<>("A", "b", "")
+                ));
+            }
+        }
+    }
+
+    @Test public void
+    uses_comparator_on_only_col() {
+        try (LmdbStorageEnvironment env = createEnv()) {
+            LmdbTable<String, String, String> table = env.table("test",
+                    STRING_CODEC,
+                    STRING_CODEC.comparedUsing(String::compareToIgnoreCase),
+                    STRING_CODEC);
+
+            try (Transaction txn = env.txnWrite()) {
+                table.put("a", "g", "");
+                table.put("a", "h", "");
+                table.put("a", "Q", "");
+                table.put("b", "g", "");
+                table.put("A", "g", "");
+                table.put("B", "g", "");
+
+                assertThat(collect(table.entries()), contains(
+                        new TableEntry<>("A", "g", ""),
+                        new TableEntry<>("B", "g", ""),
+                        new TableEntry<>("a", "g", ""),
+                        new TableEntry<>("a", "h", ""),
+                        new TableEntry<>("a", "Q", ""),
+                        new TableEntry<>("b", "g", "")
+                ));
+            }
+        }
+    }
+
     //todo: test what happens with empty colKey and comparator now
+
+    //todo: deomonstrate that deserializing row/col key is always required due to comparator stuff
 }
