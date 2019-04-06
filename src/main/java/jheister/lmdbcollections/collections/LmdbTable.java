@@ -8,7 +8,7 @@ import org.lmdbjava.Dbi;
 import org.lmdbjava.KeyRange;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.Spliterator;
 import java.util.stream.Stream;
@@ -62,41 +62,31 @@ public class LmdbTable<R, C, V> {
         db.delete(txn.lmdbTxn, txn.keyBuffer);
     }
 
+    //todo: cleanup duplication splitting ByteBuffer into row / col buffers
     public Stream<TableEntry<R, C, V>> rowEntries(R rowKey) {
         Transaction txn = localTxn.get();
         txn.keyBuffer.clear();
         fillRowKey(txn.keyBuffer, rowKey);
         txn.keyBuffer.flip();
 
-        int expectedKeyLength = txn.keyBuffer.getInt();
-        byte[] expectedKeyBytes = new byte[expectedKeyLength];
-        txn.keyBuffer.get(expectedKeyBytes);
-        txn.keyBuffer.rewind();
-
         CursorIterator<ByteBuffer> iterator = db.iterate(txn.lmdbTxn, KeyRange.atLeast(txn.keyBuffer));
 
-        byte[] actualKeyBytes = new byte[expectedKeyLength];
+        Comparator<ByteBuffer> comparator = rowKeyCodec.comparator() == null ? Comparator.naturalOrder() : rowKeyCodec.comparator();
 
         return stream(spliteratorUnknownSize(iterator, Spliterator.ORDERED), false)
                 .takeWhile(e -> {
                     ByteBuffer key = e.key();
-                    int keyLength = key.getInt();
-                    if (expectedKeyLength != keyLength) {
-                        return false;
-                    }
+                    int len = key.remaining();
 
-                    key.get(actualKeyBytes);
-                    return Arrays.equals(actualKeyBytes, expectedKeyBytes);
+                    key.limit(key.getInt() + 4);
+
+                    txn.keyBuffer.position(4);
+
+                    boolean stillWanted = comparator.compare(key, txn.keyBuffer) == 0;
+                    key.rewind().limit(len);
+                    return stillWanted;
                 })
-                .map(e -> {
-                    C colKey = colKeyCodec.deserialize(e.key());
-
-                    return new TableEntry<>(
-                            rowKey,
-                            colKey,
-                            codec.deserialize(e.val())
-                    );
-                }).onClose(iterator::close);
+                .map(this::entryFor).onClose(iterator::close);
     }
 
     public Stream<TableEntry<R, C, V>> entries() {
@@ -105,21 +95,24 @@ public class LmdbTable<R, C, V> {
         CursorIterator<ByteBuffer> iterator = db.iterate(txn.lmdbTxn);
 
         return stream(spliteratorUnknownSize(iterator, Spliterator.ORDERED), false)
-                .map(e -> {
-                    int len = e.key().remaining();
-                    int rowKeyLen = e.key().getInt();
-                    e.key().limit(rowKeyLen + 4);
-                    R rowKey = rowKeyCodec.deserialize(e.key());
-                    e.key().limit(len);
-                    e.key().position(rowKeyLen + 4);
-                    C colKey = colKeyCodec.deserialize(e.key());
+                .map(this::entryFor)
+                .onClose(iterator::close);
+    }
 
-                    return new TableEntry<>(
-                            rowKey,
-                            colKey,
-                            codec.deserialize(e.val())
-                    );
-                }).onClose(iterator::close);
+    private TableEntry<R, C, V> entryFor(CursorIterator.KeyVal<ByteBuffer> e) {
+        int len = e.key().remaining();
+        int rowKeyLen = e.key().getInt();
+        e.key().limit(rowKeyLen + 4);
+        R rowKey = rowKeyCodec.deserialize(e.key());
+        e.key().limit(len);
+        e.key().position(rowKeyLen + 4);
+        C colKey = colKeyCodec.deserialize(e.key());
+
+        return new TableEntry<>(
+                rowKey,
+                colKey,
+                codec.deserialize(e.val())
+        );
     }
 
     private void fillKeyBuffer(ByteBuffer keyBuffer, R rowKey, C colKey) {

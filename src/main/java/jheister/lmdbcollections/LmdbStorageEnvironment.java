@@ -32,7 +32,6 @@ public class LmdbStorageEnvironment implements AutoCloseable {
         this.env = env;
     }
 
-    //todo: make it work when only row or col have a comparator
     //todo: speed comparison with / without comparator - how much does the callback to java cost?
     public <R, C, V> LmdbTable<R, C, V> table(String name, Codec<R> rowKeyCodec, Codec<C> colKeyCodec, Codec<V> valueCodec) {
         return new LmdbTable<>(env.openDbi(name, constructComparator(rowKeyCodec.comparator(), colKeyCodec.comparator()), MDB_CREATE), rowKeyCodec, colKeyCodec, valueCodec, threadLocalTransaction);

@@ -353,6 +353,38 @@ public class LmdbTableTest extends TestBase {
         }
     }
 
+    @Test public void
+    returns_values_as_inserted_for_row_keys() {
+        try (LmdbStorageEnvironment env = createEnv()) {
+
+            LmdbTable<String, String, String> table = env.table("test",
+                    STRING_CODEC.comparedUsing(String::compareToIgnoreCase),
+                    STRING_CODEC,
+                    STRING_CODEC);
+
+            try (Transaction txn = env.txnWrite()) {
+                table.put("a", "a", "");
+                table.put("A", "b", "");
+                table.put("a", "c", "");
+                table.put("A", "d", "");
+
+                assertThat(collect(table.entries()), contains(
+                        new TableEntry<>("a", "a", ""),
+                        new TableEntry<>("A", "b", ""),
+                        new TableEntry<>("a", "c", ""),
+                        new TableEntry<>("A", "d", "")
+                ));
+
+                assertThat(collect(table.rowEntries("a")), contains(
+                        new TableEntry<>("a", "a", ""),
+                        new TableEntry<>("A", "b", ""),
+                        new TableEntry<>("a", "c", ""),
+                        new TableEntry<>("A", "d", "")
+                ));
+            }
+        }
+    }
+
     //todo: test what happens with empty colKey and comparator now
 
     //todo: deomonstrate that deserializing row/col key is always required due to comparator stuff
