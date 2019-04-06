@@ -12,6 +12,7 @@ import org.lmdbjava.Txn;
 
 import java.io.File;
 import java.nio.ByteBuffer;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -31,9 +32,35 @@ public class LmdbStorageEnvironment implements AutoCloseable {
         this.env = env;
     }
 
-    //todo: work out what to do about comparators
+    //todo: make it work when only row or col have a comparator
+    //todo: speed comparison with / without comparator - how much does the callback to java cost?
     public <R, C, V> LmdbTable<R, C, V> table(String name, Codec<R> rowKeyCodec, Codec<C> colKeyCodec, Codec<V> valueCodec) {
-        return new LmdbTable<>(env.openDbi(name, MDB_CREATE), rowKeyCodec, colKeyCodec, valueCodec, threadLocalTransaction);
+        Comparator<ByteBuffer> comparator = (o1, o2) -> {
+            int o1Len = o1.remaining();
+            int o2Len = o2.remaining();
+            int o1RowKeyLen = o1.getInt();
+            int o2RowKeyLen = o2.getInt();
+
+            o1.limit(o1RowKeyLen + 4);
+            o2.limit(o2RowKeyLen + 4);
+
+            int rowKeyCompare = rowKeyCodec.comparator().compare(o1, o2);
+
+            o1.rewind().limit(o1Len).position(o1RowKeyLen + 4);
+            o2.rewind().limit(o2Len).position(o2RowKeyLen + 4);
+
+            if (rowKeyCompare != 0) {
+                return rowKeyCompare;
+            }
+
+            if (o1.remaining() > 0 && o2.remaining() > 0) {
+                return colKeyCodec.comparator().compare(o1, o2);
+            } else {
+                return o1Len - o2Len;
+            }
+        };
+
+        return new LmdbTable<>(env.openDbi(name, rowKeyCodec.comparator() != null && colKeyCodec.comparator() != null ? comparator : null, MDB_CREATE), rowKeyCodec, colKeyCodec, valueCodec, threadLocalTransaction);
     }
 
     public <K, V> LmdbMap<K, V> map(String name, Codec<K> keyCodec, Codec<V> valueCodec) {

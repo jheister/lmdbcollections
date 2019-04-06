@@ -1,7 +1,5 @@
 package jheister.lmdbcollections.codec;
 
-import jheister.lmdbcollections.codec.Codec;
-
 import java.nio.ByteBuffer;
 
 import static java.nio.charset.StandardCharsets.UTF_8;

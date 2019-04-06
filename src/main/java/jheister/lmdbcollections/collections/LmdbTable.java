@@ -9,6 +9,7 @@ import org.lmdbjava.KeyRange;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Spliterator;
 import java.util.stream.Stream;
 
@@ -61,7 +62,7 @@ public class LmdbTable<R, C, V> {
         db.delete(txn.lmdbTxn, txn.keyBuffer);
     }
 
-    public Stream<Entry<C, V>> rowEntries(R rowKey) {
+    public Stream<TableEntry<R, C, V>> rowEntries(R rowKey) {
         Transaction txn = localTxn.get();
         txn.keyBuffer.clear();
         fillRowKey(txn.keyBuffer, rowKey);
@@ -73,7 +74,6 @@ public class LmdbTable<R, C, V> {
         txn.keyBuffer.rewind();
 
         CursorIterator<ByteBuffer> iterator = db.iterate(txn.lmdbTxn, KeyRange.atLeast(txn.keyBuffer));
-
 
         byte[] actualKeyBytes = new byte[expectedKeyLength];
 
@@ -91,14 +91,37 @@ public class LmdbTable<R, C, V> {
                 .map(e -> {
                     C colKey = colKeyCodec.deserialize(e.key());
 
-                    return new Entry<>(
+                    return new TableEntry<>(
+                            rowKey,
                             colKey,
                             codec.deserialize(e.val())
                     );
                 }).onClose(iterator::close);
     }
 
-    //todo: express this as a composite codec
+    public Stream<TableEntry<R, C, V>> entries() {
+        Transaction txn = localTxn.get();
+
+        CursorIterator<ByteBuffer> iterator = db.iterate(txn.lmdbTxn);
+
+        return stream(spliteratorUnknownSize(iterator, Spliterator.ORDERED), false)
+                .map(e -> {
+                    int len = e.key().remaining();
+                    int rowKeyLen = e.key().getInt();
+                    e.key().limit(rowKeyLen + 4);
+                    R rowKey = rowKeyCodec.deserialize(e.key());
+                    e.key().limit(len);
+                    e.key().position(rowKeyLen + 4);
+                    C colKey = colKeyCodec.deserialize(e.key());
+
+                    return new TableEntry<>(
+                            rowKey,
+                            colKey,
+                            codec.deserialize(e.val())
+                    );
+                }).onClose(iterator::close);
+    }
+
     private void fillKeyBuffer(ByteBuffer keyBuffer, R rowKey, C colKey) {
         keyBuffer.clear();
 
@@ -112,5 +135,41 @@ public class LmdbTable<R, C, V> {
         rowKeyCodec.serialize(rowKey, keyBuffer);
         int rowKeySize = keyBuffer.position() - 4;
         keyBuffer.putInt(0, rowKeySize);
+    }
+
+    public static class TableEntry<R, C, V> {
+        public final R rowKey;
+        public final C colKey;
+        public final V value;
+
+        public TableEntry(R rowKey, C colKey, V value) {
+            this.rowKey = rowKey;
+            this.colKey = colKey;
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return "TableEntry{" +
+                    "rowKey=" + rowKey +
+                    ", colKey=" + colKey +
+                    ", value=" + value +
+                    '}';
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            TableEntry<?, ?, ?> that = (TableEntry<?, ?, ?>) o;
+            return Objects.equals(rowKey, that.rowKey) &&
+                    Objects.equals(colKey, that.colKey) &&
+                    Objects.equals(value, that.value);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(rowKey, colKey, value);
+        }
     }
 }

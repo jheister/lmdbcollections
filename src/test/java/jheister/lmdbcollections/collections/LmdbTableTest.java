@@ -3,12 +3,14 @@ package jheister.lmdbcollections.collections;
 import jheister.lmdbcollections.LmdbStorageEnvironment;
 import jheister.lmdbcollections.TestBase;
 import jheister.lmdbcollections.Transaction;
+import jheister.lmdbcollections.collections.LmdbTable.TableEntry;
 import org.junit.Test;
 
 import java.nio.BufferOverflowException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static jheister.lmdbcollections.codec.Codec.INTEGER_CODEC;
 import static jheister.lmdbcollections.codec.Codec.STRING_CODEC;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -70,16 +72,16 @@ public class LmdbTableTest extends TestBase {
                 table.put("R3", "F", "9");
 
                 assertThat(collect(table.rowEntries("R1")), contains(
-                        new Entry<>("A", "4"),
-                        new Entry<>("B", "2")
+                        new TableEntry<>("R1", "A", "4"),
+                        new TableEntry<>("R1", "B", "2")
                 ));
                 assertThat(collect(table.rowEntries("R2")), contains(
-                        new Entry<>("C", "7"),
-                        new Entry<>("D", "5")
+                        new TableEntry<>("R2", "C", "7"),
+                        new TableEntry<>("R2", "D", "5")
                 ));
                 assertThat(collect(table.rowEntries("R3")), contains(
-                        new Entry<>("E", "8"),
-                        new Entry<>("F", "9")
+                        new TableEntry<>("R3", "E", "8"),
+                        new TableEntry<>("R3", "F", "9")
                 ));
             }
         }
@@ -99,14 +101,14 @@ public class LmdbTableTest extends TestBase {
                 table.put("AA", "c", "6");
 
                 assertThat(collect(table.rowEntries("A")), contains(
-                        new Entry<>("Aa", "1"),
-                        new Entry<>("Ab", "2"),
-                        new Entry<>("Ac", "3")
+                        new TableEntry<>("A", "Aa", "1"),
+                        new TableEntry<>("A", "Ab", "2"),
+                        new TableEntry<>("A", "Ac", "3")
                 ));
                 assertThat(collect(table.rowEntries("AA")), contains(
-                        new Entry<>("a", "4"),
-                        new Entry<>("b", "5"),
-                        new Entry<>("c", "6")
+                        new TableEntry<>("AA", "a", "4"),
+                        new TableEntry<>("AA", "b", "5"),
+                        new TableEntry<>("AA", "c", "6")
                 ));
             }
         }
@@ -123,8 +125,8 @@ public class LmdbTableTest extends TestBase {
                 table.put("row1", "col2", "Alternative");
 
                 assertThat(collect(table.rowEntries("row1")), contains(
-                        new Entry<>("col1", "Hello"),
-                        new Entry<>("col2", "Alternative")
+                        new TableEntry<>("row1", "col1", "Hello"),
+                        new TableEntry<>("row1", "col2", "Alternative")
                 ));
             }
         }
@@ -164,4 +166,51 @@ public class LmdbTableTest extends TestBase {
             }
         }
     }
+
+    @Test public void
+    when_both_row_and_col_have_specific_ordering_this_is_preserved() {
+        try (LmdbStorageEnvironment env = createEnv()) {
+            LmdbTable<Integer, Integer, String> table = env.table("test", INTEGER_CODEC, INTEGER_CODEC, STRING_CODEC);
+
+            try (Transaction txn = env.txnWrite()) {
+                table.put(4, 3, "C");
+                table.put(4, 5, "D");
+                table.put(4, 2, "B");
+                table.put(4, -2, "A");
+                table.put(-3, 8, "C");
+                table.put(-3, 6, "B");
+                table.put(-3, 9, "D");
+                table.put(-3, -45, "A");
+
+                assertThat(collect(table.rowEntries(4)), contains(
+                        new TableEntry<>(4, -2, "A"),
+                        new TableEntry<>(4, 2, "B"),
+                        new TableEntry<>(4, 3, "C"),
+                        new TableEntry<>(4, 5, "D")
+                ));
+
+                assertThat(collect(table.rowEntries(-3)), contains(
+                        new TableEntry<>(-3, -45, "A"),
+                        new TableEntry<>(-3, 6, "B"),
+                        new TableEntry<>(-3, 8, "C"),
+                        new TableEntry<>(-3, 9, "D")
+                ));
+
+                assertThat(collect(table.entries()), contains(
+                        new TableEntry<>(-3, -45, "A"),
+                        new TableEntry<>(-3, 6, "B"),
+                        new TableEntry<>(-3, 8, "C"),
+                        new TableEntry<>(-3, 9, "D"),
+                        new TableEntry<>(4, -2, "A"),
+                        new TableEntry<>(4, 2, "B"),
+                        new TableEntry<>(4, 3, "C"),
+                        new TableEntry<>(4, 5, "D")
+                ));
+            }
+        }
+    }
+
+    //todo: test what happens with empty colKey and comparator now
+    //todo: test it works when r/c have variable lenth + overlap
+    //todo: test being able to reverse the ordering of r or cs
 }
