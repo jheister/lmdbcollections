@@ -210,7 +210,36 @@ public class LmdbTableTest extends TestBase {
         }
     }
 
-    //todo: test what happens with empty colKey and comparator now
+    @Test public void
+    can_reverse_the_order_of_keys() {
+        try (LmdbStorageEnvironment env = createEnv()) {
+            LmdbTable<Integer, Integer, String> table = env.table("test", INTEGER_CODEC, INTEGER_CODEC.reverseOrder(), STRING_CODEC);
+
+            try (Transaction txn = env.txnWrite()) {
+                table.put(4, 3, "C");
+                table.put(4, 5, "D");
+                table.put(4, 2, "B");
+                table.put(4, -2, "A");
+                table.put(-3, 8, "C");
+                table.put(-3, 6, "B");
+                table.put(-3, 9, "D");
+                table.put(-3, -45, "A");
+
+                assertThat(collect(table.entries()), contains(
+                        new TableEntry<>(-3, 9, "D"),
+                        new TableEntry<>(-3, 8, "C"),
+                        new TableEntry<>(-3, 6, "B"),
+                        new TableEntry<>(-3, -45, "A"),
+                        new TableEntry<>(4, 5, "D"),
+                        new TableEntry<>(4, 3, "C"),
+                        new TableEntry<>(4, 2, "B"),
+                        new TableEntry<>(4, -2, "A")
+                ));
+            }
+        }
+    }
+
     //todo: test it works when r/c have variable lenth + overlap
+    //todo: test what happens with empty colKey and comparator now
     //todo: test being able to reverse the ordering of r or cs
 }

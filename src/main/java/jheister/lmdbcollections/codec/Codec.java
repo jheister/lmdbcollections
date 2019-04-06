@@ -30,4 +30,23 @@ public interface Codec<T> {
     default Comparator<ByteBuffer> comparator() {
         return null;
     }
+
+    default Codec<T> reverseOrder() {
+        return new Codec<T>() {
+            @Override
+            public T deserialize(ByteBuffer buffer) {
+                return Codec.this.deserialize(buffer);
+            }
+
+            @Override
+            public void serialize(T value, ByteBuffer target) {
+                Codec.this.serialize(value, target);
+            }
+
+            @Override
+            public Comparator<ByteBuffer> comparator() {
+                return Codec.this.comparator().reversed();
+            }
+        };
+    }
 }
