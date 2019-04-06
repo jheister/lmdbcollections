@@ -271,7 +271,35 @@ public class LmdbTableTest extends TestBase {
         }
     }
 
-    //todo: test it works when r/c have variable lenth + overlap
+    @Test public void
+    when_row_and_col_keys_combine_to_the_same_value_correct_entries_are_returned_when_using_custom_comparators() {
+        try (LmdbStorageEnvironment env = createEnv()) {
+            LmdbTable<String, String, String> table = env.table("test",
+                    STRING_CODEC.comparedUsing(String::compareTo),
+                    STRING_CODEC.comparedUsing(String::compareTo),
+                    STRING_CODEC);
+
+            try (Transaction txn = env.txnWrite()) {
+                table.put("A", "Aa", "1");
+                table.put("A", "Ab", "2");
+                table.put("A", "Ac", "3");
+                table.put("AA", "a", "4");
+                table.put("AA", "b", "5");
+                table.put("AA", "c", "6");
+
+                assertThat(collect(table.rowEntries("A")), contains(
+                        new TableEntry<>("A", "Aa", "1"),
+                        new TableEntry<>("A", "Ab", "2"),
+                        new TableEntry<>("A", "Ac", "3")
+                ));
+                assertThat(collect(table.rowEntries("AA")), contains(
+                        new TableEntry<>("AA", "a", "4"),
+                        new TableEntry<>("AA", "b", "5"),
+                        new TableEntry<>("AA", "c", "6")
+                ));
+            }
+        }
+    }
+
     //todo: test what happens with empty colKey and comparator now
-    //todo: test being able to reverse the ordering of r or cs
 }
